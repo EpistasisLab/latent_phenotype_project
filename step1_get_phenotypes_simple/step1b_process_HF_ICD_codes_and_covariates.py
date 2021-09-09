@@ -133,23 +133,41 @@ special_fields += ["680-1.0", "680-2.0", "680-3.0", "680-4.0", "680-5.0", "680-6
 special_fields += ["1687-average", "1697-average", "2306-average", "1031-average", "24506-average"]
 
 
-all_data = all_data[environmental_cols]
+env_data = all_data[environmental_cols]
 
-# no features extremely correlated with heart failure were found.
+# no environmental features extremely correlated with heart failure were found.
 HF_correlations = []
+p_vals = []
 for ycol in y_data[HF].to_numpy(dtype = float).T:
     correlation_set = []
-    X = all_data[all_data.columns[all_data.columns != "eid"]].to_numpy(dtype = float).T
+    p_val_set = []
+    X = env_data[env_data.columns[env_data.columns != "eid"]].to_numpy(dtype = float).T
     i = -1
     for xcol in tqdm(X):
         i += 1
         val_indices = np.isnan(xcol) == False
-        r = pearsonr(xcol[val_indices], ycol[val_indices])[0]
-        correlation_set.append(pearsonr(xcol[val_indices], ycol[val_indices])[0])
+        r, p = pearsonr(xcol[val_indices], ycol[val_indices])
+        correlation_set.append(r)
+        p_val_set.append(p)
     HF_correlations.append(correlation_set)
+    p_vals.append(p_val_set)
 HF_correlations = np.array(HF_correlations)
+p_vals = np.array(p_vals)
 
-all_data.to_csv("X.txt", sep = "\t", header = True, index = False)
+env_data.to_csv("X.txt", sep = "\t", header = True, index = False)
 y_data.to_csv("y.txt", sep = "\t", header = True, index = False)
 
-
+HF_data = y_data["any_HF"].to_numpy(dtype = float)
+ICD_data_cols = all_data.columns[np.array(["count" in name for name in all_data.columns])]
+ICD_data = all_data.loc[:, ICD_data_cols]
+X = ICD_data.to_numpy(dtype = float).T
+HF_ICD_p_vals = np.array([pearsonr(xcol, HF_data)[1] for xcol in X])
+sorted_indices = np.argsort(HF_ICD_p_vals)
+HF_ICD_p_vals_sorted = HF_ICD_p_vals[sorted_indices]
+ICD_data_cols_sorted = ICD_data_cols[sorted_indices]
+is_significant = HF_ICD_p_vals_sorted < 0.05/(len(HF_ICD_p_vals) - np.arange(len(HF_ICD_p_vals)))
+first_false = np.where(is_significant == False)[0][0]
+is_significant[first_false:] = False
+ICD_data_cols_significant = ICD_data_cols_sorted[is_significant]
+ICD_data_significant = all_data[["eid"] + ICD_data_cols_significant.tolist()]
+ICD_data_significant.to_csv("Y.txt", sep = "\t", header = True, index = False)
