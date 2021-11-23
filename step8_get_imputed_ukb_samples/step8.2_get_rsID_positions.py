@@ -19,10 +19,7 @@ num_good_GWAS_SNPs = 0
 for i, chr in tqdm(enumerate(chromosomes)):
 
     # column 7 is the info score, column 5 is the maf, and column 2 is the chromosome position
-    try:
-        SNP_info_scores = pd.read_csv(imputed_SNPs_file_names[i], delimiter = "\t", header = None)
-    except:
-        pdb.set_trace()
+    SNP_info_scores = pd.read_csv(imputed_SNPs_file_names[i], delimiter = "\t", header = None)
     SNP_info_scores.columns = ["name", 1, 2, 3, 4, 5, 6, 7]
     SNP_info_scores["name"] = SNP_info_scores.loc[:, "name"].str.split("_", expand = True)[0]
 

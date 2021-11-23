@@ -10,7 +10,7 @@ if not os.path.exists(filtered_output_folder):
     os.mkdir(filtered_output_folder)
 if not os.path.exists(eid_filters_folder):
     os.mkdir(eid_filters_folder)
-output_file_names_file = open("../step3_merge_everything_remove_quitters_and_get_SNP_cutoffs/step3.0_output_file_names.txt", 'w')
+output_file_names_file = open("../step3_merge_chr_and_remove_quitters/step3.0_output_file_names.txt", 'w')
 for i in chromosomes:
 
     # makes the common part of the data filtering shell script
@@ -36,6 +36,6 @@ for i in chromosomes:
 
     # adds a filtered output file name to the list of such names for merging (excuding the first file)
     if i != "1":
-        output_file_names_file.write("../step1_get_UKB_samples/" + filtered_output_folder  + "/UKB_samples_chr" + i + "\n")
+        output_file_names_file.write("../step2_get_UKB_samples/" + filtered_output_folder  + "/UKB_samples_chr" + i + "\n")
 output_file_names_file.close()
     

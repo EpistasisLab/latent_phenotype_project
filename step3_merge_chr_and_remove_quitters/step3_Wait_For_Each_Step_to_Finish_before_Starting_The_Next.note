@@ -1,0 +1,3 @@
+python step3a_get_people_who_quit.py
+bsub < step3b_merge_datasets.sh
+python step3c_find_SNP_cutoffs.py

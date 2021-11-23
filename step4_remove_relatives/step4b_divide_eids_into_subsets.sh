@@ -8,11 +8,11 @@
 module load plink/1.90Beta
 
 # removes a few control samples so the number of samples is divisible by 10.
-# plink --memory 15000 --bfile UKB_samples_filtered_with_remainder --remove remainder_eids.tab --make-bed --out UKB_samples_filtered
-# rm UKB_samples_filtered_with_remainder.bed
-# rm UKB_samples_filtered_with_remainder.bim
-# rm UKB_samples_filtered_with_remainder.fam
-# rm UKB_samples_filtered_with_remainder.log
+plink --memory 15000 --bfile UKB_samples_filtered_with_remainder --remove remainder_eids.tab --make-bed --out UKB_samples_filtered
+rm UKB_samples_filtered_with_remainder.bed
+rm UKB_samples_filtered_with_remainder.bim
+rm UKB_samples_filtered_with_remainder.fam
+rm UKB_samples_filtered_with_remainder.log
 
 # divides data into subsets
 plink --memory 15000 --bfile UKB_samples_filtered --keep data_subset_content/subset1.tab --make-bed --out data_subset_content/UKB_samples_filtered_subset1
