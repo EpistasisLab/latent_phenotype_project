@@ -1,7 +1,7 @@
 #!/bin/bash
-#BSUB -J step10c_filter_significant_SNPs_and_get_vQTLxE_effects
-#BSUB -o step10c_filter_significant_SNPs_and_get_vQTLxE_effects.out
-#BSUB -e step10c_filter_significant_SNPs_and_get_vQTLxE_effects.err
+#BSUB -J step10c_filter_significant_SNPs_and_get_GxE_effects
+#BSUB -o step10c_filter_significant_SNPs_and_get_GxE_effects.out
+#BSUB -e step10c_filter_significant_SNPs_and_get_GxE_effects.err
 
 source activate torch_env2
 
@@ -13,7 +13,7 @@ fi
 for i in {1..26}
 do
     printf '#!/bin/bash'"\n" > "hit_getters/get_chr"$i"_hits.sh"
-    printf '#BSUB -J step10c_filter_significant_SNPs_and_get_vQTLxE_effects'$i"\n" >> "hit_getters/get_chr"$i"_hits.sh"
+    printf '#BSUB -J step10c_filter_significant_SNPs_and_get_GxE_effects'$i"\n" >> "hit_getters/get_chr"$i"_hits.sh"
     printf '#BSUB -o hit_getters/get_chr'$i"_hits.out\n" >> "hit_getters/get_chr"$i"_hits.sh"
     printf '#BSUB -e hit_getters/get_chr'$i"_hits.err\n" >> "hit_getters/get_chr"$i"_hits.sh"
     if [ "$i" == "8" ]; then
@@ -30,7 +30,7 @@ do
     
     for NAME in "_alcohol" "_smoking" "_gender" "_exercise" "_age" "_BMI" "_pol"
     do
-        printf 'python step0_filter_significant_SNPs_and_get_vQTLxE_effects.py --chr '$i" --name "$NAME"\n">> "hit_getters/get_chr"$i"_hits.sh"
+        printf 'python step0_filter_significant_SNPs_and_get_GxE_effects.py --chr '$i" --name "$NAME"\n">> "hit_getters/get_chr"$i"_hits.sh"
     done
 done
 
