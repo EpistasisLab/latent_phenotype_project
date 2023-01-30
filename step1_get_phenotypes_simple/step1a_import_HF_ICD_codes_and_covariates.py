@@ -96,6 +96,11 @@ has_no_HCM = np.logical_or(has_HCM1, has_HCM2) == False
 fields = fields.loc[np.logical_and(is_white, has_no_HCM), :]
 fields[["eid", "eid"]].to_csv("../step2_get_UKB_samples/eids.tab", sep = "\t", header = False, index = False)
 
+#---------------------------------------------------------------------------------------------------------------------------------
+# "fields" has all non-white and hypertrophic CM individuals removed
+# At the bottom, I carve out a dataset for lstm dimensionality reduction
+#---------------------------------------------------------------------------------------------------------------------------------
+
 HF_ICD_codes = ["I110", "I130", "I132", "I255", "I420", "I425", "I426", "I427", "I428", "I429", "I431", "I500", "I501", "I509"]
 colnames = fields.columns
 colfields = np.array([name.split("-")[0] for name in colnames])
@@ -312,3 +317,9 @@ income_data.loc[income_data["738-0.0"] == -3, "738-0.0"] = np.nan
 income_data.loc[income_data["738-0.0"] == -1, "738-0.0"] = np.nan
 HF_context["income"] = income_data["738-0.0"]
 HF_context.to_csv("HF_metadata.txt", sep = "\t", header = True, index = False)
+
+#---------------------------------------------------------------------------------------------------------------------------------
+# Here is where I carve out the set for dimensionality reduction
+# Each diagnosis will be a one hot vector
+# Each patient will be an array of one hot vectors
+#---------------------------------------------------------------------------------------------------------------------------------
