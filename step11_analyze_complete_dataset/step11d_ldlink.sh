@@ -3,6 +3,7 @@
 expected_line="QueryGWASTraitRSNumberPosition(GRCh37)AllelesR2D'RiskAlleleEffectSize(95%CI)BetaorORP-value"
 expected_error_message1="NoentriesintheGWASCatalogareidentifiedusingtheLDtraitsearchcriteria."
 expected_error_message2="InputSNPlistdoesnotcontainanyvalidRSnumbersorcoordinates."
+expected_error_message3="InputSNPlistdoesnotcontainanyvalidRSnumbersorcoordinates.ThefollowingRSnumber(s)orcoordinate(s)inputshavewarnings:rs35826789"
 
 
 snps_dir="snps"
@@ -48,6 +49,11 @@ do
     elif [[ $error_message == $expected_error_message2 ]]; then
       echo "$error_message"
       echo "invalid name" > "$output_filename"
+      echo "$snps"
+      retry=0
+    elif [[ $error_message == $expected_error_message3 ]]; then
+      echo "$error_message"
+      echo "nothing found" > "$output_filename"
       echo "$snps"
       retry=0
     else
