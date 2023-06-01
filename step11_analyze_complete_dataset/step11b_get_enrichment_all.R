@@ -19,7 +19,7 @@
 
 packs = c("ggplot2", "limma", "tidyr", "AnnotationDbi", "org.Hs.eg.db", 
           "GO.db", "msigdbr", "clusterProfiler", "gt", "webshot2", "tidytext", 
-          "dplyr", "VennDiagram", "stringr")
+          "dplyr", "VennDiagram", "stringr", "tibble")
 invisible(lapply(packs, library, character.only = TRUE))
 
 names1 = c("GxSmoking", "GxAlcohol", "GxGender", "main")
