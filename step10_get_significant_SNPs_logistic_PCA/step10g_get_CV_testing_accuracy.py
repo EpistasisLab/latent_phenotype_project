@@ -122,7 +122,7 @@ N, K = len(X), len(X[0])
 xn, x, s2 = np.mean(X, axis = 1), np.mean(X), np.var(X)
 ICC = (K*np.sum((xn - x)**2)/(N*(K - 1)*s2)) - (1/(K - 1))
 m = (K + 1) - (1 + (K - 1)*ICC)
-pb = 5E-8/(m*6)
+pb = 5E-8/(m*5)
 
 # getting main effects with classical testing
 suffixes = ["smoking", "alcohol", "exercise", "gender"]
