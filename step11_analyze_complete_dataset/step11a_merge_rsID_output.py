@@ -13,13 +13,25 @@ suffixes = ["rsIDs_" + i + "_effects.txt" for i in suffixes]
 bim_suffixes = ["alcohol", "exercise", "smoking", "gender"]
 bim_suffixes = ["significant_SNPs_plink_files_" + i for i in bim_suffixes]
 bim_files = []
+table1a = []
 for prefix in prefixes:
+    table1a_path = prefix + "/step10e_p_val_analysis.txt"
+    table1a.append(pd.read_csv(table1a_path, delimiter = "\t")) 
+
     paths = [prefix + "/" + suffix for suffix in bim_suffixes]
     all_paths = []
     for path in paths: all_paths += [path + "/" + i for i in os.listdir(path)]
     all_paths = [i for i in all_paths if ".bim" in i]
     info = [pd.read_csv(path, delimiter = "\t", header = None) for path in all_paths]
     bim_files.append(pd.concat(info)[[1, 0, 3]])
+
+table1a = pd.concat(table1a)
+table1a["model"] = prefix_ends
+ordered_names = ["model", "TRACE vs. linear logp Mean", "p-value", "conditional logp Mean", "conditional p-value"]
+new_names = ["latent phenotype model", "TRACE vs. linear E[logp]", "p-value", "conditional E[logp]", "conditional p-value"]
+table1a = table1a[ordered_names]
+table1a.columns = new_names
+table1a.to_csv("table1a.txt", sep = "\t", header = True, index = False)
 
 bim_files = pd.concat(bim_files).drop_duplicates(1)
 bim_files.columns = ["rsID", "chr", "pos"]
@@ -55,11 +67,19 @@ factors = ["alcohol", "exercise", "smoking", "gender", "main"]
 for suffix, env_factor in zip(suffixes, factors):
     merged_rsID_set = []
     for prefix, end in zip(prefixes, prefix_ends):
+
         path = prefix + "/" + suffix
         df = pd.read_csv(path, delimiter = "\t")
+
+        folder = "all_sig_rsIDs_" + prefix.split("SNPs_")[-1]
+        if not os.path.isdir(folder): os.mkdir(folder)
+        path2 = folder + "/" + suffix
+        df.to_csv(path2, sep = "\t", header = True, index = False)
+
         df["type"] = end
         df["env_factor"] = env_factor
         merged_rsID_set.append(df)
+
 
     if suffix != "rsIDs_main_effects.txt":
         test_efficacy_df = pd.concat(merged_rsID_set).merge(QTL_files, on = ["rsID", "pheno_index", "type", "env_factor"], how = "inner")
@@ -79,7 +99,5 @@ for suffix, env_factor in zip(suffixes, factors):
         pdb.set_trace()
     df[["rsID", "chr", "pos"]].to_csv(suffix, sep = "\t", header = True, index = False)
 
-pdb.set_trace()
 pvals = pd.concat(test_efficacy_dfs)[["p", "pEDGE2"]]
 spearmanr(pvals["p"], pvals["pEDGE2"])
-np.mean(-np.log10(pvals["p"])) - np.mean(-np.log10(pvals["pEDGE2"]))

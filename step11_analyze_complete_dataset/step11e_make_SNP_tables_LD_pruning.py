@@ -1,12 +1,30 @@
 import numpy as np
 import pandas as pd
-from bed_reader import open_bed
 import os
+from bed_reader import open_bed
+from functools import reduce
 import pdb
 
 output_names = ["snps_output/" + name for name in os.listdir("snps_output")]
 output_files = [pd.read_csv(name, delimiter = "\t") for name in output_names]
 output_types = np.array([file.columns[0] for file in output_files])
+
+# I've manually selected a subset of terms with potentially AHF associated word fragments
+# they are based on manual examination of the "GWAS traits" column in "output_files" dataframes
+possible_AHF_terms = ["heart", "cardi", "vessel", "vein", "arter"]
+possible_AHF_terms += ["capillar", "aort", "aneurysm", "calc", "clot"]
+possible_AHF_terms += ["cholest", "lipopro", "ldl", "hdl", "vldl"]
+possible_AHF_terms += ["diabet", "hypertens", "syst", "diast", "pressure"]
+possible_AHF_terms += ["arrhythmia", "atheroscl", "insulin", "stroke", "embol"]
+possible_AHF_terms += ["thromb", "coagul", "leptin", "ischem", "platelet"]
+possible_AHF_terms += ["renin", "angiotensin", "sphingomyelin", "triacylglyceride", "venous"]
+
+no_info_inds = np.array([len(info) for info in output_files]) == 0
+SNPs_with_info = pd.concat(np.array(output_files, dtype = object)[no_info_inds == False])
+unique_traits = np.unique([i.lower() for i in SNPs_with_info["GWAS Trait"].tolist()]).astype(str)
+term_sets = [[trait for trait in unique_traits if term in trait] for term in possible_AHF_terms]
+term_sets = reduce(np.union1d, term_sets)
+output_files = [df if len(df) == 0 else df.loc[df["GWAS Trait"].str.lower().isin(term_sets), :] for df in output_files]
 
 input_rsIDs = np.array([name.split("_")[3] for name in output_names])
 input_E = np.array([name.split("/")[1].split("_")[0] for name in output_names])
@@ -40,7 +58,7 @@ for E in np.unique(input_E):
     valid_rsIDs_E = valid_rsIDs[valid_E == E]
     valid_lengths_E = valid_lengths[valid_E == E]
     known_rsIDs = valid_rsIDs_E[valid_lengths_E > 0]
-    novel_rsIDs = valid_rsIDs_E[valid_lengths_E == 0]
+    novel_rsIDs = valid_rsIDs_E[valid_lengths_E == 0]   
 
     valid_output_E = valid_output[valid_E == E]
     known_rsID_traits = valid_output_E[valid_lengths_E > 0]
@@ -125,8 +143,23 @@ for E in np.unique(input_E):
         known_df.to_csv(out_fname1, sep = "\t", header = True, index = False)
         novel_df.to_csv(out_fname2, sep = "\t", header = True, index = False)
  
+# old formatting
+# counts as opposed to SNP_counts count the number of SNP effects as opposed to the number of unique SNPs.
+# counts = pd.DataFrame([categories, novel_counts, novel_SNP_counts, known_counts, known_SNP_counts, invalid_counts]).T
 
-counts = pd.DataFrame([categories, novel_counts, novel_SNP_counts, known_counts, known_SNP_counts, invalid_counts]).T
-counts = counts.sort_values(0)
-counts.columns = ["effect type", "novel SNP hits", "novel SNPs", "known SNP hits", "known SNPs", "invalid names"]
-counts.to_csv("step11e_counts.txt", sep = "\t", header = True, index = False)
+counts = pd.DataFrame([categories, novel_SNP_counts, known_SNP_counts]).T
+counts = counts.sort_values(0, ascending = False)
+counts.columns = ["effect type", "novel SNPs", "known SNPs"]
+
+counts_logistic_PCA = counts[["novel SNPs", "known SNPs"]].to_numpy()[0:4].reshape(-1)
+counts_PCA = counts[["novel SNPs", "known SNPs"]].to_numpy()[4:8].reshape(-1)
+counts_NN = counts[["novel SNPs", "known SNPs"]].to_numpy()[8:12].reshape(-1)
+counts2 = pd.DataFrame([counts_PCA, counts_logistic_PCA, counts_NN])
+counts2[8] = ["PCA", "logistic PCA", "autoencoder"]
+counts2 = counts2[[8, 0, 1, 2, 3, 4, 5, 6, 7]]
+cols = ["latent phenotype model", "Main_Novel_SNP", "Main_Known_SNP"]
+cols += ["GxSmoking_Novel_SNP", "GxSmoking_Known_SNP"]
+cols += ["GxGender_Novel_SNP", "GxGender_Known_SNP"]
+cols += ["GxAlcohol_Novel_SNP", "GxAlcohol_Known_SNP"]
+counts2.columns = cols
+counts2.to_csv("table1b.txt", sep = "\t", header = True, index = False)

@@ -53,7 +53,18 @@ for paths in [NN_paths, PCA_paths, logistic_PCA_paths]:
     LR_r_vals.append(np.array([df["R squared (LR nested CV)"].to_numpy()[0] for df in files]))
     hyperparameters.append(np.array([df[['learning rate', 'max depth',]].to_numpy()[0] for df in files]))
 
-np.mean(hyperparameters[0], axis = 0)
+df_lr, df_md = np.array(hyperparameters).transpose([2, 1, 0])
+lr, md = np.arange(0.01, 0.1, 0.01), np.arange(1, 8)
+lr_counts = pd.DataFrame(np.sum(df_lr == lr.reshape(-1, 1, 1), axis = 1))
+lr_counts.columns = ["autoencoder", "PCA", "logistic PCA"]
+lr_counts["learning rate"] = np.round(lr, 2)
+lr_counts.to_csv("tableS5b.txt", sep = "\t", header = True, index = False)
+lr_counts = lr_counts[["learning rate", "PCA", "logistic PCA", "autoencoder"]]
+md_counts = pd.DataFrame(np.sum(df_md == md.reshape(-1, 1, 1), axis = 1))
+md_counts.columns = ["autoencoder", "PCA", "logistic PCA"]
+md_counts["max depth"] = md
+md_counts = md_counts[["max depth", "PCA", "logistic PCA", "autoencoder"]]
+md_counts.to_csv("tableS5a.txt", sep = "\t", header = True, index = False)
 
 NN_GBC = GBC_r_vals_CV_nested[0]
 NN_LR = LR_r_vals[0]
@@ -72,27 +83,29 @@ means = [np.mean(i) for i in data]
 inds = np.arange(6) + 1
 names = np.array(["PCA (LR)", "PCA (GBC)", "logistic PCA (LR)", "logistic PCA (GBC)", "autoencoder (LR)", "autoencoder (GBC)"])
 errs = np.array([bootstrap(i, 100000) for i in data])
+max_vals = errs[:, 1][[1, 3, 5]]
 errs = np.abs(errs.T - means)
 
-def plot_p_vals(means, inds, pvals):
-    for i in range(int(len(means)/2)): 
+def plot_p_vals(means, inds, pvals, max_vals):
+    for k, i in enumerate(range(int(len(means)/2))): 
         inds_sub = inds[2*i:2*(i + 1)]
         max_mean = np.array(2*[np.max(means[2*i:2*(i + 1)])])
-        plt.plot(inds_sub, max_mean + 0.01, "-k")
-        plt.text(x = inds_sub[0] - 0.15, y = max_mean[0] + 0.015, s = "p=" + str(pvals[i]), fontsize = 12)
+        plt.plot(inds_sub, 2*[max_vals[k] + 0.003], "-k", linewidth = 4)
+        pval = str(pvals[i])
+        if len(pval) == 8: pval = pval[0] + pval[1] + pval[2] + pval[4] + pval[5] + pval[6] + pval[7]
+        plt.text(x = inds_sub[0] + 0.08, y = max_vals[k] + 0.006, s = "p=" + pval, fontsize = 24)
 
-fig = plt.figure()
-plt.plot(inds, means, 'ko')
-plt.plot(inds, means, 'ko')
-plt.errorbar(inds, means, yerr = errs, fmt='ko', capsize = 10)
-plt.xticks(inds, labels = names, rotation = 45, ha="right", fontsize=12)
-plot_p_vals(means, inds, pvals)
+fig = plt.figure(figsize=(20, 16))
+plt.plot(inds, means, 'ko', markersize = 20)
+plt.errorbar(inds, means, yerr = errs, fmt='ko', capsize = 40, elinewidth = 4, capthick = 4)
+plt.xticks(inds, labels = names, rotation = 45, ha="right", fontsize=24)
+plot_p_vals(means, inds, pvals, max_vals)
 title = "within-model mean R squared CIs\n "
 title += "with between-model wilcoxon p values"
-plt.title(title, size = 16, pad = 10)
-plt.tick_params(labelsize = 12)
+plt.title(title, size = 40, pad = 20)
+plt.tick_params(labelsize = 30)
 fig.subplots_adjust(left = 0.15, bottom = 0.3, top = 0.85)
-plt.ylabel("R squared between predicted\nand actual heart failure status", fontsize=12)
+plt.ylabel("R squared between predicted\nand actual heart failure status", fontsize = 32)
 plt.ylim([0.04, 0.14])
 plt.xlim([0, 7])
 plt.savefig("r_squared.png")

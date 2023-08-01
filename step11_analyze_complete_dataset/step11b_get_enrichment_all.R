@@ -1,3 +1,10 @@
+#---------------------------------------------------------------------------------------------------------
+# WARNING: step11b_get_enrichment_all.R contains some manual steps
+# DO NOT run all of the code at once
+# Run it all up to each manual step. Then do the manual step.
+# Repeat until there are no remaining intermediate manual steps.
+#---------------------------------------------------------------------------------------------------------
+
 #Turns out you need to install bioconductor related things this way.
 #if (!require("BiocManager", quietly = TRUE))
 #  install.packages("BiocManager")
@@ -15,11 +22,24 @@
 #install.packages("tidytext")
 #install.packages("dplyr")
 #install.packages("VennDiagram")
-#install.packages("stringr") 
+#install.packages("stringr")
+#install.packages("MASS")
+#install.packages("ggforce")
+#install.packages("DiagrammeR")
+#install.packages("rsvg")
+#install.packages('DiagrammeRsvg')
 
-packs = c("ggplot2", "limma", "tidyr", "AnnotationDbi", "org.Hs.eg.db", 
-          "GO.db", "msigdbr", "clusterProfiler", "gt", "webshot2", "tidytext", 
-          "dplyr", "VennDiagram", "stringr", "tibble")
+#---------------------------------------------------------------------------------------------------------
+# WARNING: step11b_get_enrichment_all.R contains some manual steps
+# DO NOT run all of the code at once
+# Run it all up to each manual step. Then do the manual step.
+# Repeat until there are no remaining intermediate manual steps.
+#---------------------------------------------------------------------------------------------------------
+
+packs = c("ggplot2", "limma", "tidyr", "AnnotationDbi", "org.Hs.eg.db", "DiagrammeR", 
+          "GO.db", "msigdbr", "clusterProfiler", "gt", "webshot2", "tidytext", "rsvg",  
+          "dplyr", "VennDiagram", "stringr", "tibble", "MASS", "ggforce", "grid",
+          'DiagrammeRsvg')
 invisible(lapply(packs, library, character.only = TRUE))
 
 names1 = c("GxSmoking", "GxAlcohol", "GxGender", "main")
@@ -86,6 +106,8 @@ TFs = sapply(strsplit(TFs, split = "_"), `[`, 1)
 TFs_Enterez_IDs <- mapIds(org.Hs.eg.db, keys = TFs, keytype="SYMBOL", column = "ENTREZID")
 TFs_Enterez_IDs <- TFs_Enterez_IDs[is.na(TFs_Enterez_IDs) == F]
 
+# The object names may be misleading
+# note the subcategory = "BP": the final output is GO gene sets.
 TFs_KEGG_genes <- msigdbr(species = "human", subcategory = "BP")
 TFs_KEGG_t2g <- TFs_KEGG_genes %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
 TFs_out_KEGG <- enricher(gene = unique(TFs_Enterez_IDs), TERM2GENE = TFs_KEGG_t2g)
@@ -99,7 +121,7 @@ gender_table <- TFs_info_KEGG_gender[1:10, ]
 gender_table <- gt(gender_table, 
                    rowname_col = "ID") %>% 
   cols_label(
-    p.adjust = md("Adjusted p-value"),
+    p.adjust = md("Adjusted p−value"),
     Count = md("Number of genes"),
   ) %>%
   fmt_scientific(
@@ -116,9 +138,9 @@ gender_table <- gt(gender_table,
   ) %>% 
   tab_stubhead(label = "GO gene set ID") %>% 
   cols_width(
-    ID ~ px(350),
-    p.adjust ~ px(175),
-    Count ~ px(175),
+    ID ~ px(168),
+    p.adjust ~ px(125),
+    Count ~ px(95)
   ) %>%
   tab_options(
     column_labels.background.color = "#0b1d78",
@@ -141,8 +163,30 @@ gender_table <- gt(gender_table,
   ) %>%
   opt_horizontal_padding(scale = 3)
 gender_table
-gtsave(gender_table, "gender_table.docx")
-gtsave(gender_table, "gender_table.png")
+gtsave(gender_table, "table2c.docx")
+gtsave(gender_table, "table2c.png")
+
+table_S6c <- TFs_out_KEGG@result[TFs_out_KEGG@result[6] < 0.05, c(1, 6, 9, 8)] %>%
+             arrange(p.adjust) %>% 
+             rename(`GO gene set ID` = ID, 
+                    `adjusted p-value` = p.adjust, 
+                    `observed gene count` = Count, 
+                    `observed gene identities` = geneID)
+table_S6c$`observed gene identities` <- gsub("/", ";", 
+                                             table_S6c$`observed gene identities`)
+write.table(table_S6c, "table_S6c.txt", sep = "\t", row.names = F, col.names = T)
+
+table_S6f_rows <- (grepl("(MIR|LET)",  unlist(info_REG[[3]][1])) == FALSE)
+table_S6f_cols <- c("ID", "p.adjust", "Count", "geneID")
+table_S6f <- info_REG[[3]][table_S6f_rows, table_S6f_cols] %>% 
+             arrange(p.adjust) %>% 
+             rename(`transcription factor gene name` = ID, 
+                    `adjusted p-value` = p.adjust, 
+                    `observed gene count` = Count, 
+                    `observed gene identities` = geneID)
+table_S6f$`observed gene identities` <- gsub("/", ";", 
+                                             table_S6f$`observed gene identities`)
+write.table(table_S6f, "table_S6f.txt", sep = "\t", row.names = F, col.names = T)
 
 alcohol_table <- info_KEGG[[2]][ ,c("ID", "p.adjust", "geneID")]
 alcohol_table["geneID"] <- c("ALDH5", "ALDH5", "PIK3C2G", "PIK3C2G", "ID4")
@@ -152,7 +196,7 @@ alcohol_table[,"ID"] <- tolower(alcohol_table[,"ID"])
 alcohol_table <- gt(alcohol_table, 
                     rowname_col = "ID") %>% 
   cols_label(
-    p.adjust = md("Adjusted p-value"),
+    p.adjust = md("Adjusted p−value"),
     geneID = md("gene name"),
   ) %>%
   fmt_scientific(
@@ -169,9 +213,9 @@ alcohol_table <- gt(alcohol_table,
   ) %>% 
   tab_stubhead(label = "KEGG gene set ID") %>% 
   cols_width(
-    ID ~ px(350),
-    p.adjust ~ px(175),
-    geneID ~ px(175),
+    ID ~ px(175),
+    p.adjust ~ px(125),
+    geneID ~ px(95),
   ) %>%
   tab_options(
     column_labels.background.color = "#0b1d78",
@@ -197,6 +241,14 @@ alcohol_table
 gtsave(alcohol_table, "alcohol_table.docx")
 gtsave(alcohol_table, "alcohol_table.png")
 
+table_S6d <- info_KEGG[[2]][ ,c("ID", "p.adjust", "Count", "geneID")] %>%
+             arrange(p.adjust) %>% 
+             rename(`GO gene set ID` = ID, 
+                    `adjusted p-value` = p.adjust, 
+                    `observed gene count` = Count, 
+                    `observed gene identities` = geneID)
+write.table(table_S6d, "table_S6d.txt", sep = "\t", row.names = F, col.names = T)
+
 main_table <- info_GO[[4]][1:10 ,c("ID", "p.adjust", "Count")]
 main_table[,"ID"] <- gsub("GO_", "", main_table[,"ID"])
 main_table[,"ID"] <- gsub("_", " ", main_table[,"ID"])
@@ -204,7 +256,7 @@ main_table[,"ID"] <- tolower(main_table[,"ID"])
 main_table <- gt(main_table, 
                  rowname_col = "ID") %>% 
   cols_label(
-    p.adjust = md("Adjusted p-value"),
+    p.adjust = md("Adjusted p−value"),
     Count = md("Number of genes"),
   ) %>%
   fmt_scientific(
@@ -221,9 +273,9 @@ main_table <- gt(main_table,
   ) %>% 
   tab_stubhead(label = "GO gene set ID") %>% 
   cols_width(
-    ID ~ px(350),
-    p.adjust ~ px(175),
-    Count ~ px(175),
+    ID ~ px(175),
+    p.adjust ~ px(125),
+    Count ~ px(95),
   ) %>%
   tab_options(
     column_labels.background.color = "#0b1d78",
@@ -246,15 +298,64 @@ main_table <- gt(main_table,
   ) %>%
   opt_horizontal_padding(scale = 3)
 main_table
-gtsave(main_table, "main_table.docx")
-gtsave(main_table, "main_table.png")
+gtsave(main_table, "table2a.docx")
+gtsave(main_table, "table2a.png")
+table_S6a <- info_GO[[4]][c("ID", "p.adjust", "Count", "geneID")] %>%
+             arrange(p.adjust) %>% 
+             rename(`GO gene set ID` = ID, 
+                    `adjusted p-value` = p.adjust, 
+                    `observed gene count` = Count, 
+                    `observed gene identities` = geneID)
+table_S6a$`observed gene identities` <- gsub("/", ";", 
+                                             table_S6a$`observed gene identities`)
+write.table(table_S6a, "table_S6a.txt", sep = "\t", row.names = F, col.names = T)
+
+MIRs <- info_REG[[1]][grepl("MIR",  unlist(info_REG[[1]][1])), 1]
+MIRs <- gsub("[ATGC]{2,}_", "", MIRs)
+MIRs <- gsub("_MIR", "__MIR", MIRs)
+MIRs <- unname(unlist(strsplit(MIRs, split = "__")))
+MIRs <- tolower(MIRs)
+MIRs <- gsub("mir", "hsa-miR-", MIRs)
+MIRs <- gsub("_", "-", MIRs)
+MIRs <- data.frame(MIRs)
+write.table(MIRs, "MIRS_smoking.txt", row.names=FALSE, col.names=FALSE, sep="\t", quote = FALSE)
+#---------------------------------------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------------------------------------
+# MANUAL STEP 1 START
+#---------------------------------------------------------------------------------------------------------
+#
+# paste the miRNA names from MIRS_smoking.txt into the appropriate step at
+# https://ccb-compute2.cs.uni-saarland.de/mieaa2/user_input/
+# Then you'll get a list of miRNA names not on record.
+# Put that file in your working directory and rename it "MIRS_smoking_unknown.txt"
+#
+#---------------------------------------------------------------------------------------------------------
+# MANUAL STEP 1 END
+#---------------------------------------------------------------------------------------------------------
+
+unknown_MIRs = read.csv("MIRS_smoking_unknown.txt", header = F, sep = "\t")
+MIRs2 = data.frame(setdiff(unname(unlist(MIRs)), unname(unlist(unknown_MIRs))))
+write.table(MIRs2, "MIRS2_smoking.txt", row.names=FALSE, col.names=FALSE, sep="\t", quote = FALSE)
+
+#---------------------------------------------------------------------------------------------------------
+# MANUAL STEP 2 START
+#---------------------------------------------------------------------------------------------------------
+#
+# paste the miRNA names from MIRS_smoking.txt into the appropriate step at
+# https://ccb-compute2.cs.uni-saarland.de/mieaa2/user_input/
+# download the output file and rename it "miEAA.csv"
+#
+#---------------------------------------------------------------------------------------------------------
+# MANUAL STEP 2 END
+#---------------------------------------------------------------------------------------------------------
 
 miEAA_hits <- read.csv("miEAA.csv", header = T, sep = ",")
 smoking_table <- miEAA_hits[1:10, c("Subcategory", "P.adjusted", "Observed")]
 smoking_table <- gt(smoking_table, 
                     rowname_col = "Subcategory") %>% 
   cols_label(
-    P.adjusted = md("Adjusted p-value"),
+    P.adjusted = md("Adjusted p−value"),
     Observed = md("Number of miRNA"),
   ) %>%
   fmt_scientific(
@@ -271,9 +372,9 @@ smoking_table <- gt(smoking_table,
   ) %>% 
   tab_stubhead(label = "KEGG gene set ID") %>% 
   cols_width(
-    Subcategory ~ px(350),
-    P.adjusted ~ px(175),
-    Observed ~ px(175),
+    Subcategory ~ px(175),
+    P.adjusted ~ px(125),
+    Observed ~ px(100),
   ) %>%
   tab_options(
     column_labels.background.color = "#0b1d78",
@@ -296,6 +397,31 @@ smoking_table <- gt(smoking_table,
   ) %>%
   opt_horizontal_padding(scale = 3)
 smoking_table
-gtsave(smoking_table, "smoking_table.docx")
-gtsave(smoking_table, "smoking_table.png")
+gtsave(smoking_table, "table2b.docx")
+gtsave(smoking_table, "table2b.png")
+
+table_S6b <- miEAA_hits[c("Subcategory", 
+                          "P.adjusted", 
+                          "Observed", 
+                          "miRNAs.precursors")] %>% 
+  arrange(P.adjusted) %>% 
+  rename(`KEGG gene set ID` = Subcategory, 
+         `adjusted p-value` = P.adjusted, 
+         `observed miRNA count` = Observed, 
+         `observed miRNA identities` = miRNAs.precursors)
+table_S6b$`observed miRNA identities` <- gsub("; ", ";", 
+                                              table_S6b$`observed miRNA identities`)
+write.table(table_S6b, "table_S6b.txt", sep = "\t", row.names = F, col.names = T)
+
+table_S6e_cols <- c("ID", "p.adjust", "Count", "geneID")
+table_S6e_rows <- grepl("MIR",  unlist(info_REG[[1]][1]))
+table_S6e <- info_REG[[1]][table_S6e_rows, table_S6e_cols] %>% 
+             arrange(p.adjust) %>% 
+             rename(`miRNA name` = ID, 
+                    `adjusted p-value` = p.adjust, 
+                    `observed gene count` = Count, 
+                    `observed gene identities` = geneID)
+table_S6e$`observed gene identities` <- gsub("/", ";", 
+                                             table_S6e$`observed gene identities`)
+write.table(table_S6e, "table_S6e.txt", sep = "\t", row.names = F, col.names = T)
 

@@ -1,33 +1,3 @@
-# WARNING: this code contains some manual steps
-
-#---------------------------------------------------------------------------------------------------------
-#first run this code.
-#---------------------------------------------------------------------------------------------------------
-MIRs <- info_REG[[1]][grepl("MIR",  unlist(info_REG[[1]][1])), 1]
-MIRs <- gsub("[ATGC]{2,}_", "", MIRs)
-MIRs <- gsub("_MIR", "__MIR", MIRs)
-MIRs <- unname(unlist(strsplit(MIRs, split = "__")))
-MIRs <- tolower(MIRs)
-MIRs <- gsub("mir", "hsa-miR-", MIRs)
-MIRs <- gsub("_", "-", MIRs)
-MIRs <- data.frame(MIRs)
-write.table(MIRs, "MIRS_smoking.txt", row.names=FALSE, col.names=FALSE, sep="\t", quote = FALSE)
-#---------------------------------------------------------------------------------------------------------
-
-
-
-#---------------------------------------------------------------------------------------------------------
-# MANUAL STEP
-# paste the miRNA names from MIRS_smoking.txt into the appropriate step at
-# https://ccb-compute2.cs.uni-saarland.de/mieaa2/user_input/
-# Then you'll get a list of miRNA names not on record.
-# Put that file in your working directory and rename it "MIRS_smoking_unknown.txt"
-# Then run this code
-#---------------------------------------------------------------------------------------------------------
-unknown_MIRs = read.csv("MIRS_smoking_unknown.txt", header = F, sep = "\t")
-MIRs2 = data.frame(setdiff(unname(unlist(MIRs)), unname(unlist(unknown_MIRs))))
-write.table(MIRs2, "MIRS2_smoking.txt", row.names=FALSE, col.names=FALSE, sep="\t", quote = FALSE)
-
 HCM_mirs <- read.csv("miEAA.csv", header = T, sep = ",")
 name = HCM_mirs[9, "Subcategory"] 
 row <- (HCM_mirs["Subcategory"] == name)
@@ -138,6 +108,7 @@ novel_rsiD_tables_pheno <- list()
 novel_rsiD_tables_env <- list()
 novel_rsiD_tables_neither <- list()
 i = 1
+model_names = c("PCA", "logistic PCA", "autoencoder")
 for (model in c("PCA", "logistic_PCA", "NN")) {
   fname <- paste("step11e_", model, "_GxSmoking_rsIDs_known.txt", sep = "")
   rsIDs_model_known <- read.csv(fname, header = T, sep = "\t")
@@ -234,7 +205,7 @@ for (model in c("PCA", "logistic_PCA", "NN")) {
   has_gda_only <- has_gda_sum & (has_DE_effect == FALSE)
   has_DE_only <- (has_gda_sum == FALSE) & has_DE_effect
   has_neither <- (has_gda_sum == FALSE) & (has_DE_effect == FALSE)
-  rsID_data["phenotype model"] <- model
+  rsID_data["phenotype model"] <- model_names[i]
   novel_rsiD_tables_both[[i]] <- rsID_data[has_both, ]
   novel_rsiD_tables_pheno[[i]] <- rsID_data[has_gda_only, ]
   novel_rsiD_tables_env[[i]] <- rsID_data[has_DE_only, ]
@@ -245,9 +216,9 @@ for (model in c("PCA", "logistic_PCA", "NN")) {
 both_top_five <- Reduce(rbind, novel_rsiD_tables_both) %>% 
                  filter(.data$average_abs_all > 0.4) %>% 
                  arrange(desc(gda_score_sum)) %>% 
-                 select("symbol", "rsID", "phenotype model",  
-                        "best_p_value", "maf", "gda_score_sum", 
-                        "num_hits_all", "average_all") %>% 
+                 dplyr::select("symbol", "rsID", "phenotype model",  
+                               "best_p_value", "maf", "gda_score_sum", 
+                               "num_hits_all", "average_all") %>% 
                  rename(`gene symbol` = symbol, `best p value` = best_p_value,
                        `gda score sum` = gda_score_sum,
                        `average DE log2(fold change)` = average_all, 
@@ -259,10 +230,14 @@ both_roles <- c("apoptosis",
                 "CVD-related transcription regulation",
                 "multiple CVD-related pathways")
 
+Reduce(rbind, novel_rsiD_tables_both) %>% 
+arrange(desc(gda_score_sum)) %>% 
+write.table("table_S7a.txt", sep = "\t", row.names = F, col.names = T)
+
 pheno_top_five <- Reduce(rbind, novel_rsiD_tables_pheno) %>% 
                   arrange(desc(gda_score_sum)) %>% 
-                  select("symbol", "rsID", "phenotype model", 
-                         "best_p_value", "maf", "gda_score_sum") %>% 
+                  dplyr::select("symbol", "rsID", "phenotype model", 
+                                "best_p_value", "maf", "gda_score_sum") %>% 
                   rename(`gene symbol` = symbol, 
                          `best p value` = best_p_value,
                          `gda score sum` = gda_score_sum) %>% 
@@ -273,11 +248,15 @@ pheno_roles <- c("cardiac calcium channel",
                  "cardiac muscle contraction",
                  "perlecan protein")
 
+Reduce(rbind, novel_rsiD_tables_pheno) %>% 
+arrange(desc(gda_score_sum)) %>% 
+write.table("table_S7b.txt", sep = "\t", row.names = F, col.names = T)
+
 env_top_five <- Reduce(rbind, novel_rsiD_tables_env) %>% 
                 filter(.data$average_abs_all > 0.4) %>% 
                 arrange(desc(num_hits_all), 
                         desc(average_abs_all)) %>% 
-                select("symbol", "rsID", "phenotype model", 
+                dplyr::select("symbol", "rsID", "phenotype model", 
                        "best_p_value", "maf", 
                        "num_hits_all", "average_all") %>% 
                 rename(`gene symbol` = symbol, 
@@ -291,10 +270,13 @@ env_roles  <- c("neurogenesis",
                 "chloride transport",
                 "potassium channels")
 
+Reduce(rbind, novel_rsiD_tables_env) %>% 
+arrange(desc(num_hits_all), desc(average_abs_all)) %>% 
+write.table("table_S7c.txt", sep = "\t", row.names = F, col.names = T)
 
 neither_top_5 <- Reduce(rbind, novel_rsiD_tables_neither) %>% 
                  arrange(best_p_value) %>%  
-                 select("symbol", "rsID", "phenotype model", 
+                 dplyr::select("symbol", "rsID", "phenotype model", 
                         "best_p_value", "maf") %>% 
                  rename(`gene symbol` = symbol, 
                         `best p value` = best_p_value) %>% 
@@ -305,13 +287,17 @@ neither_roles <- c("Vesicle trafficking protein",
                    "Ras regulator",
                    "mTOR regulator")
 
+Reduce(rbind, novel_rsiD_tables_neither) %>% 
+arrange(best_p_value) %>% 
+write.table("table_S7d.txt", sep = "\t", row.names = F, col.names = T)
+
 gene_functions <- list(both_roles, pheno_roles, env_roles, neither_roles)
 tables <- list(both_top_five, pheno_top_five, env_top_five, neither_top_5)
 out_tables <- list()
 docx_names <- c("top_five_both.docx", "top_five_pheno.docx", 
                 "top_five_env.docx", "top_5_neither.docx")
-png_names <- c("top_five_both.png", "top_five_pheno.png", 
-               "top_five_env.png", "top_5_neither.png")
+png_names <- c("table3a.png", "table3b.png", 
+               "table3c.png", "table3d.png")
 
 for (i in 1:4) {
 
@@ -319,7 +305,7 @@ for (i in 1:4) {
       table <- tables[[i]] %>% 
       add_column(`function` = role, .after = 1)
       docx_name <- docx_names[i]
-      png_names <- png_names[i]
+      png_name <- png_names[i]
       table <- gt(table, 
                   rowname_col = "gene symbol") %>%
       fmt_scientific(
@@ -349,11 +335,11 @@ for (i in 1:4) {
       tab_stubhead(label = "gene symbol") %>% 
       cols_width(
         `gene symbol` ~ px(125),
-        `function` ~ px(200),
+        `function` ~ px(160),
         `rsID` ~ px(130),
         `phenotype model` ~ px(125),
         `best p value` ~ px(125),
-        `maf` ~ px(75),
+        `maf` ~ px(60),
       ) %>%
       tab_options(
         column_labels.background.color = "#0b1d78",
@@ -390,8 +376,8 @@ for (i in 1:4) {
         align = "right"
       ) %>% 
       cols_width(
-        `average DE log2(fold change)` ~ px(160),
-        `number of DE reps` ~ px(110)
+        `average DE log2(fold change)` ~ px(140),
+        `number of DE reps` ~ px(75)
       )
     }
       
@@ -401,13 +387,13 @@ for (i in 1:4) {
         align = "right"
       ) %>% 
       cols_width(
-        `gda score sum` ~ px(100),
+        `gda score sum` ~ px(60),
       )
     }
       
     out_tables[[i]] <- table
-    #gtsave(table, docx_name)
-    #gtsave(table, png_name)
+    gtsave(table, docx_name)
+    gtsave(table, png_name)
 }
 
 write.table(novel_rsiD_tables_both[[1]], "examples_PCA_smoking_both.txt", row.names = F, col.names = T, sep="\t", quote = F)
