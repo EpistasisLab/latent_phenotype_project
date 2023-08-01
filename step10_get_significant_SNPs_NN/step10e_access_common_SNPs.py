@@ -120,6 +120,7 @@ pvals2 = [i[2] for i in GxE_effects_pvals]
 pvals_complete_set = np.array([i for i in zip(pvals0, pvals1)])
 GxE_effects_df = pd.DataFrame(zip(rsID, env_factor, pheno_index, chr, pvals0, pvals1, pvals2))
 GxE_effects_df.columns = ["rsID", "env_factor", "pheno_index", "chr", "pEDGE2", "pEDGE", "p_joined"]
+GxE_effects_df.to_csv("step10e_GxE_effects_df.txt", sep = "\t", header = True, index = False)
 
 # formula for corrected m (g*) in https://pubmed.ncbi.nlm.nih.gov/22588983/
 # formula for ICC: https://en.wikipedia.org/wiki/Intraclass_correlation
@@ -129,7 +130,7 @@ N, K = len(X), len(X[0])
 xn, x, s2 = np.mean(X, axis = 1), np.mean(X), np.var(X)
 ICC = (K*np.sum((xn - x)**2)/(N*(K - 1)*s2)) - (1/(K - 1))
 m = (K + 1) - (1 + (K - 1)*ICC)
-pb = 5E-8/(m*6)
+pb = 5E-8/(m*5)
 
 # getting main effects with classical testing
 suffixes = ["smoking", "alcohol", "exercise", "gender"]
@@ -439,32 +440,25 @@ diffs = -np.log10(Interesting_SNPs["pEDGE2"].to_numpy(dtype = float)) + np.log10
 best_SNP_ind = np.argsort(diffs)
 Interesting_SNPs.loc[best_SNP_ind[-2:], :]
 
-'''
 # some commentary
 # p_null is the GxE p value for a linear interaction test
 # p_alt is the permutation test that I use. 
 # sig_ind are the indices where p_null is significant
 p_alt1, p_alt2 = p_alt[sig_ind], p_alt[sig_ind == False]
 p_null1, p_null2 = p_null[sig_ind], p_null[sig_ind == False]
-p_total = wilcoxon(p_alt - p_null, alternative = 'greater')
 
-# As expected, p_alt greatly outperforms p_null when p_null is not significant
-p_not_sig_only = wilcoxon(p_alt2 - p_null2, alternative = 'greater')
+# As expected, p_alt greatly outperforms p_null
+diff_all = p_alt - p_null
+p_all = wilcoxon(diff_all, alternative = 'greater')[1]
 
-# As expected, p_alt does not outperform p_null when p_null is significant
-p_sig_only = wilcoxon(p_alt1 - p_null1, alternative = 'greater')
+# As expected, p_null outperforms p_alt when p_null is significant 
+# the linear model is more powerful than the nonparametric one when correct. 
+diff_sig_only = p_alt1 - p_null1
+p_sig_only = wilcoxon(diff_sig_only, alternative = 'less')[1]
 
-# We expect p_alt to outperform p_null more when pnull is insignificant, and this is the case
-method_diff = mwu(p_alt2 - p_null2, p_alt1 - p_null1, alternative = 'greater')
-
-# We expect p_alt1 and p_alt2 not to be significantly different, and they are not.
-# This is because p_alt's significance should be uneffected by p_null's significance. 
-p_alt_diff = mwu(p_alt1, p_alt2, alternative = 'two-sided')
-
-spearmanr(p_alt1, p_null1)
-spearmanr(p_alt2, p_null2)
-spearmanr(p_alt, p_null)
-'''
+df = pd.DataFrame([[np.mean(diff_all), p_all, np.mean(diff_sig_only), p_sig_only]])
+df.columns = ["TRACE vs. linear logp Mean", "p-value", "conditional logp Mean", "conditional p-value"]
+df.to_csv("step10e_p_val_analysis.txt", sep = "\t", header = True, index = False)
 
 r2_vals = []
 p_vals = []
