@@ -11,7 +11,6 @@ from sklearn.decomposition import PCA
 from matplotlib import pyplot as plt
 from scipy.stats import pearsonr
 from scipy.stats import spearmanr
-from scipy.stats import yeojohnson as yj
 from copy import deepcopy as COPY
 
 parser = argparse.ArgumentParser()
@@ -25,9 +24,10 @@ P = pd.read_csv("logistic_SVD_output/phenotypes15.txt", delimiter = "\t")
 P2 = COPY(P)
 for i in np.arange(16).astype(str):
     pheno = (P[i].to_numpy() - np.mean(P[i].to_numpy()))/np.std(P[i].to_numpy())
-    pheno2 = yj(pheno)[0]
+    pheno2 = np.sign(pheno)*np.log(np.abs(pheno) + 1)
+    pheno2 = (pheno2 - np.mean(pheno2))/np.std(pheno2)
     P2.loc[:, i] = pheno2
-    if nn == 0.1:
+    if nn == 0.05:
         plt.hist(pheno2, bins = 100)
         plt.savefig("phenotype" + i + ".png")
         plt.clf()
@@ -102,13 +102,13 @@ X_other.loc[X_other["C1"] == -1, "C1"] = np.nan
 
 unique_val_sets = [np.unique(X_all.loc[:, col]) for col in other_cols]
 unique_val_counts = np.array([len(S[np.isnan(S) == False]) for S in unique_val_sets])
-#cols_to_log_transform = other_cols[unique_val_counts > 10]
-#cols_to_log_transform = cols_to_log_transform[cols_to_log_transform != "eid"]
-#for col in cols_to_log_transform:
-#    X_other.loc[:, col] = np.log(X_other[col] - np.nanmin(X_other[col]) + np.nanmean(X_other[col]))
-#    plt.hist(X_other.loc[np.isnan(X_other[col]) == False, col].to_numpy(), bins = 100)
-#    plt.savefig("info_features/info_feature_" + col + ".png")
-#    plt.clf()
+cols_to_log_transform = other_cols[unique_val_counts > 10]
+cols_to_log_transform = cols_to_log_transform[cols_to_log_transform != "eid"]
+for col in cols_to_log_transform:
+    X_other.loc[:, col] = np.log(X_other[col] - np.nanmin(X_other[col]) + np.nanmean(X_other[col]))
+    plt.hist(X_other.loc[np.isnan(X_other[col]) == False, col].to_numpy(), bins = 100)
+    plt.savefig("info_features/info_feature_" + col + ".png")
+    plt.clf()
 is_imp_col_names = [col + "_is_imp" for col in other_cols]
 is_imp_cols = pd.DataFrame(np.array([np.isnan(X_other[col].to_numpy()).astype(int) for col in other_cols]).T)
 is_imp_cols.columns = is_imp_col_names 
@@ -119,7 +119,7 @@ X_other = X_other.merge(ICD_codes_bin, on = "eid", how = "inner")
 other_cols = np.setdiff1d(X_other.columns, cols_to_impute[1:])
 
 corr_sets = []
-for name in ['pack-years', 'annual-consumption', '874-average', '894-average', '914-average']:
+for name in ['pack-years', 'annual-consumption', '874-average', '894-average']:
     val_inds = np.isnan(X[name].to_numpy()) == False
     corr_sets.append([pearsonr(X.loc[val_inds, name], X_other.loc[val_inds, col])[0] for col in other_cols])
 best_corrs = np.max(corr_sets, axis = 0)
@@ -134,8 +134,8 @@ X.loc[no_light_exercise, '874-average'] = 0
 X.loc[no_moderate_exercise , '894-average'] = 0
 X.loc[no_heavy_exercise , '914-average'] = 0
 X_test = COPY(X.dropna())
-# log_trans_cols = ["pack-years", "annual-consumption", "874-average", "894-average", "914-average"]
-# for col in log_trans_cols: X_test.loc[:, col] = np.log(X_test[col].to_numpy() - np.min(X_test[col].to_numpy()) + np.mean(X_test[col].to_numpy()))
+log_trans_cols = ["pack-years", "annual-consumption", "874-average", "894-average", "914-average"]
+for col in log_trans_cols: X_test.loc[:, col] = np.log(X_test[col].to_numpy() - np.min(X_test[col].to_numpy()) + np.mean(X_test[col].to_numpy()))
 
 X_test_std = X_test.merge(X_other, on = "eid", how = "inner")
 X_test_std_cols = X_test_std.columns.to_numpy()
@@ -169,10 +169,7 @@ for inds, name in zip(ind_sets, test_names):
     D = D.merge(X_other, on = "eid", how = "inner")
     D_names = D.columns.to_numpy()[D.columns.to_numpy() != "eid"]
     D2 = D[D_names].to_numpy()
-    unique_counts = np.array([len(np.unique(col)) for col in D2.T])
-    mu = np.nanmean(D2[:, unique_counts > 2], axis = 0)
-    sig = np.nanstd(D2[:, unique_counts > 2], axis = 0)
-    D2[:, unique_counts > 2] = (D2[:, unique_counts > 2] - mu)/sig
+    D2 = (D2 - np.nanmean(D2, axis = 0))/np.nanstd(D2, axis = 0)
     D3 = COPY(D2)
     for i, set in enumerate(inds.T): D3[set, i] = np.nan
     imputer = IterativeImputer(max_iter=100, random_state=0)

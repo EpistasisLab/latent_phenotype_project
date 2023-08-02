@@ -11,13 +11,7 @@ from sklearn.decomposition import PCA
 from matplotlib import pyplot as plt
 from scipy.stats import pearsonr
 from scipy.stats import spearmanr
-from scipy.stats import yeojohnson as yj
 from copy import deepcopy as COPY
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--nn', nargs = 1, type = str, action = "store", dest = "nn")
-args = parser.parse_args()
-nn = float((args.nn)[0])
 
 Y = pd.read_csv("y.txt", delimiter = "\t")
 ICD_coders = np.sum(Y.to_numpy(dtype = int)[:, 1:], axis = 1) > 1
@@ -25,15 +19,10 @@ P = pd.read_csv("logistic_SVD_output/phenotypes15.txt", delimiter = "\t")
 P2 = COPY(P)
 for i in np.arange(16).astype(str):
     pheno = (P[i].to_numpy() - np.mean(P[i].to_numpy()))/np.std(P[i].to_numpy())
-    pheno2 = yj(pheno)[0]
+    pheno2 = np.sign(pheno)*np.log(np.abs(pheno) + 1)
+    pheno2 = (pheno2 - np.mean(pheno2))/np.std(pheno2)
     P2.loc[:, i] = pheno2
-    if nn == 0.1:
-        plt.hist(pheno2, bins = 100)
-        plt.savefig("phenotype" + i + ".png")
-        plt.clf()
-        plt.hist(pheno2[ICD_coders], bins = 100)
-        plt.savefig("phenotype" + i + "_with_ICD_codes.png")
-        plt.clf()
+P2.to_csv("phenotypes_for_step9.txt", sep = "\t", header = True, index = False)
 
 X_all = pd.read_csv("X.txt", delimiter = "\t")
 # These are features that weren't considered for anything before
@@ -102,13 +91,13 @@ X_other.loc[X_other["C1"] == -1, "C1"] = np.nan
 
 unique_val_sets = [np.unique(X_all.loc[:, col]) for col in other_cols]
 unique_val_counts = np.array([len(S[np.isnan(S) == False]) for S in unique_val_sets])
-#cols_to_log_transform = other_cols[unique_val_counts > 10]
-#cols_to_log_transform = cols_to_log_transform[cols_to_log_transform != "eid"]
-#for col in cols_to_log_transform:
-#    X_other.loc[:, col] = np.log(X_other[col] - np.nanmin(X_other[col]) + np.nanmean(X_other[col]))
-#    plt.hist(X_other.loc[np.isnan(X_other[col]) == False, col].to_numpy(), bins = 100)
-#    plt.savefig("info_features/info_feature_" + col + ".png")
-#    plt.clf()
+cols_to_log_transform = other_cols[unique_val_counts > 10]
+cols_to_log_transform = cols_to_log_transform[cols_to_log_transform != "eid"]
+for col in cols_to_log_transform:
+    X_other.loc[:, col] = np.log(X_other[col] - np.nanmin(X_other[col]) + np.nanmean(X_other[col]))
+    plt.hist(X_other.loc[np.isnan(X_other[col]) == False, col].to_numpy(), bins = 100)
+    plt.savefig("info_features/info_feature_" + col + ".png")
+    plt.clf()
 is_imp_col_names = [col + "_is_imp" for col in other_cols]
 is_imp_cols = pd.DataFrame(np.array([np.isnan(X_other[col].to_numpy()).astype(int) for col in other_cols]).T)
 is_imp_cols.columns = is_imp_col_names 
@@ -119,12 +108,12 @@ X_other = X_other.merge(ICD_codes_bin, on = "eid", how = "inner")
 other_cols = np.setdiff1d(X_other.columns, cols_to_impute[1:])
 
 corr_sets = []
-for name in ['pack-years', 'annual-consumption', '874-average', '894-average', '914-average']:
+for name in ['pack-years', 'annual-consumption', '874-average', '894-average']:
     val_inds = np.isnan(X[name].to_numpy()) == False
     corr_sets.append([pearsonr(X.loc[val_inds, name], X_other.loc[val_inds, col])[0] for col in other_cols])
 best_corrs = np.max(corr_sets, axis = 0)
 # sometimes "eid" may have a low correlation, and if selected, we don't want it to appear twice
-best_cols = np.union1d(["eid"], other_cols[np.abs(best_corrs) > nn])
+best_cols = np.union1d(["eid"], other_cols[np.abs(best_corrs) > 0.04])
 X_other = X_other.loc[:, best_cols]
 
 no_light_exercise = X_other['864-0.0'] == 0
@@ -133,66 +122,20 @@ no_heavy_exercise = X_other['904-0.0'] == 0
 X.loc[no_light_exercise, '874-average'] = 0
 X.loc[no_moderate_exercise , '894-average'] = 0
 X.loc[no_heavy_exercise , '914-average'] = 0
-X_test = COPY(X.dropna())
-# log_trans_cols = ["pack-years", "annual-consumption", "874-average", "894-average", "914-average"]
-# for col in log_trans_cols: X_test.loc[:, col] = np.log(X_test[col].to_numpy() - np.min(X_test[col].to_numpy()) + np.mean(X_test[col].to_numpy()))
+X2 = COPY(X)
+log_trans_cols = ["pack-years", "annual-consumption", "874-average", "894-average", "914-average"]
+for col in log_trans_cols: X2.loc[:, col] = np.log(X2[col].to_numpy() - np.nanmin(X2[col].to_numpy()) + np.nanmean(X2[col].to_numpy()))
 
-X_test_std = X_test.merge(X_other, on = "eid", how = "inner")
-X_test_std_cols = X_test_std.columns.to_numpy()
-X_test_std_cols = X_test_std_cols[np.std(X_test_std.to_numpy(), axis = 0) > 0]
-X_test_std_cols = X_test_std_cols[X_test_std_cols != "eid"]
-X_test_std = X_test_std[X_test_std_cols].to_numpy()
-X_test_std = (X_test_std - np.mean(X_test_std, axis = 0))/np.std(X_test_std, axis = 0)
-pca = PCA(n_components = 5)
-PCs = pca.fit_transform(X_test_std)
-nan_indices1 = np.array([np.random.choice(len(X_test), 20000, replace = False) for i in range(len(cols_to_impute) - 1)]).T
-nan_indices2 = np.array([np.argsort(X_test[col])[-20000:] for col in cols_to_impute[1:]]).T
-nan_indices3 = np.array([np.argsort(X_test[col])[:20000] for col in cols_to_impute[1:]]).T
-nan_indices4 = np.array([np.argsort(PCs[:, 0])[-20000:] for col in cols_to_impute[1:]]).T
-nan_indices5 = np.array([np.argsort(PCs[:, 0])[:20000] for col in cols_to_impute[1:]]).T
-nan_indices6 = np.array([np.argsort(PCs[:, 1])[-20000:] for col in cols_to_impute[1:]]).T
-nan_indices7 = np.array([np.argsort(PCs[:, 1])[:20000] for col in cols_to_impute[1:]]).T
-nan_indices8 = np.array([np.argsort(PCs[:, 2])[-20000:] for col in cols_to_impute[1:]]).T
-nan_indices9 = np.array([np.argsort(PCs[:, 2])[:20000] for col in cols_to_impute[1:]]).T
-nan_indices10 = np.array([np.argsort(PCs[:, 3])[-20000:] for col in cols_to_impute[1:]]).T
-nan_indices11 = np.array([np.argsort(PCs[:, 3])[:20000] for col in cols_to_impute[1:]]).T
-nan_indices12 = np.array([np.argsort(PCs[:, 4])[-20000:] for col in cols_to_impute[1:]]).T
-nan_indices13 = np.array([np.argsort(PCs[:, 4])[:20000] for col in cols_to_impute[1:]]).T
-
-
-info_sets = []
-
-ind_sets = [nan_indices1, nan_indices2, nan_indices3, nan_indices4, nan_indices5]
-test_names = ["random", "highest", "lowest", "highest_PC1", "lowest_PC1"]
-for inds, name in zip(ind_sets, test_names):
-    D = X_test.merge(P2, on = "eid", how = "inner")
-    D = D.merge(X_other, on = "eid", how = "inner")
-    D_names = D.columns.to_numpy()[D.columns.to_numpy() != "eid"]
-    D2 = D[D_names].to_numpy()
-    unique_counts = np.array([len(np.unique(col)) for col in D2.T])
-    mu = np.nanmean(D2[:, unique_counts > 2], axis = 0)
-    sig = np.nanstd(D2[:, unique_counts > 2], axis = 0)
-    D2[:, unique_counts > 2] = (D2[:, unique_counts > 2] - mu)/sig
-    D3 = COPY(D2)
-    for i, set in enumerate(inds.T): D3[set, i] = np.nan
-    imputer = IterativeImputer(max_iter=100, random_state=0)
-    imputer.fit(D3)
-    D_imp = imputer.transform(D3)
-
-    info = [name]
-    for i in range(5):
-        indices = inds[:, i]
-        imputed_vals = np.max([D_imp[indices, i], np.min(D2[:, i])*np.ones(len(indices))], axis = 0)
-        real_vals = D2[indices, i]
-        imputed_diffs_sum = np.sum(np.abs(real_vals - imputed_vals))
-        null_diffs_sum = np.sum(np.abs((real_vals - np.mean(D2[:, i]))))
-        var_explained = 1 - (imputed_diffs_sum/null_diffs_sum)
-        print(var_explained)
-        info.append(var_explained)
-    print("DONE")
-    info_sets.append(info)
-
-info_sets = pd.DataFrame(info_sets)
-info_sets.columns = ["test_name"] + D_names[:5].tolist()
-fname = "corr_sets_" + str(nn) + "neighbors.txt"
-info_sets.to_csv(fname, sep = "\t", header = True, index = False)
+D = X2.merge(P2, on = "eid", how = "inner")
+D = D.merge(X_other, on = "eid", how = "inner")
+D_names = D.columns.to_numpy()[D.columns.to_numpy() != "eid"]
+D2 = D[D_names].to_numpy()
+D2 = (D2 - np.nanmean(D2, axis = 0))/np.nanstd(D2, axis = 0)
+imputer = IterativeImputer(max_iter=100, random_state=0)
+imputer.fit(D2)
+D_imp = imputer.transform(D2)
+D_imp = pd.DataFrame(D_imp)
+D_imp.columns = D_names
+D_imp["eid"] = X["eid"]
+env_factors = D_imp[["eid"] + log_trans_cols]
+env_factors.to_csv("env_factors_for_step9.txt", sep = "\t", header = True, index = False)
