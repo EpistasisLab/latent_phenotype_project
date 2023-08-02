@@ -4,6 +4,7 @@ import argparse
 import os
 import pdb
 from scipy.stats import beta
+from scipy.stats import chi2
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
@@ -44,15 +45,34 @@ if GWAS == ["normal"]:
 else:
     pvals = -np.log10(np.flip(np.sort(file["p_null2"].to_numpy())))
 
-plt.plot(medians, pvals, "k-", label = "QQ plot")
-plt.plot(medians, lbs, "r-", label = "expected 2.5th percentile")
-plt.plot(medians, ubs, "b-", label = "expected 97.5th percentile")
-plt.plot(medians, medians, "m-", label = "expected 50th percentile")
-plt.fill_between(medians, lbs, ubs, alpha = 0.5)
-plt.legend()
-plt.xlabel("expected quantile p values")
-plt.xlabel("actual quantile p values")
-if not os.path.isdir("QQ_plots_" + env_name):
-    os.mkdir("QQ_plots_" + env_name)
+
+chi_alt = chi2.isf(10**(-np.median(pvals)), 1, loc=0, scale=1)
+chi_null = chi2.isf(10**(-np.median(medians)), 1, loc=0, scale=1)
+inflation_factor = pd.DataFrame([chi_alt/chi_null])
+name = "QQ_plots_" + env_name + "/phenotype" + str(pheno) + "_IF.txt"
+inflation_factor.to_csv(name, sep = "\t", header = False, index = False)
+
+fig, ax = plt.subplots(figsize = (10, 7.5))
+plt.title('p-value inflation curves', fontsize=20)
+
+sorted_p_vals = np.sort(pvals)
+pvals_cdf = np.cumsum(np.ones(len(sorted_p_vals))/len(sorted_p_vals))
+ax.plot(sorted_p_vals, pvals_cdf, "b-")
+ax.plot(sorted_p_vals, np.ones(len(pvals_cdf)), "k-")
+
+ax2 = ax.twinx()
+ax2.plot(medians, pvals, "g-")
+ax2.plot(medians, lbs, "r-")
+ax2.plot(medians, ubs, "r-")
+ax2.plot(medians, medians, "k-")
+ax2.fill_between(medians, lbs, ubs, color = "r", alpha = 0.5)
+
+ax.set_xlim([0, np.max(medians)])
+ax.set_xlabel("expected p values under null hypothesis (95% CI)", color = 'r', fontsize=20)
+ax.set_ylabel("CDF of actual p-values", color = 'b', fontsize=20)
+ax2.set_ylabel("actual p-values (QQ plot)", color = 'g', fontsize=20)
+ax.tick_params(axis='both', which='major', labelsize = 20)
+ax2.tick_params(axis='both', which='major', labelsize = 20)
+plt.tight_layout()
 plt.savefig("QQ_plots_" + env_name + "/QQ_plot_pheno" + pheno + ".png")
 plt.clf()

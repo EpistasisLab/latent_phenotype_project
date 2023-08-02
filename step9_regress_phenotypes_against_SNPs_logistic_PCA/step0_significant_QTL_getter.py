@@ -220,7 +220,7 @@ for j in tqdm(range(len(intervals) - 1)):
                     X2 += [is_male2[val_inds[:, k]]]
                 X2 = np.array(X2 + [np.ones(len(g1_vals))]).T
                 y = (p - np.mean(p))
-
+                
                 Betas = np.linalg.lstsq(X, y, rcond = None)[0][:-1]
                 enc1, enc2 = Betas[0] + Betas[2]*E1[g1_vals], Betas[1] + Betas[3]*E1[g2_vals] 
                 g_old = COPY(g)

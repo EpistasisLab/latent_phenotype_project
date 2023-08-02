@@ -34,7 +34,6 @@ chromosomes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "1
 chromosomes += ["14", "15", "16", "17", "18", "19", "20", "21", "22", "MT", "X", "XY", "Y"]
 new_fam_path_prefix = "../step8_get_imputed_ukb_samples/filtered_output/UKB_samples_chr"
 new_fam_paths = [new_fam_path_prefix + i + ".fam" for i in chromosomes]
-old_fam_path = "../step4_remove_relatives/UKB_samples_unrelated.fam"
 new_fams = [pd.read_csv(path, delim_whitespace = True, header = None)[1].to_numpy() for path in new_fam_paths]
 main_path = np.array(new_fam_paths)[np.array(chromosomes) == chr][0]
 new_fam_main = pd.read_csv(main_path, delim_whitespace = True, header = None)[1].to_numpy()
@@ -46,19 +45,24 @@ new_fam = new_fam_main[sorted_indices]
 new_fam_df = pd.DataFrame(np.array([new_fam, np.arange(len(new_fam))]).T)
 new_fam_df.columns = ["eid", "index"] 
 
+old_fam_path = "../step4_remove_relatives/UKB_samples_unrelated.fam"
 old_fam = pd.read_csv(old_fam_path, delim_whitespace = True, header = None)[0].to_numpy()
 old_in_new = np.isin(old_fam, new_fam)
+# changing the definition of heart failure led to a slight change in the eids, which cannot be reflected in step 8
+# only unrelated individuals under the previous procedure (step 8) and the current procedure (step 4) are included
+# This does include all all-cause heart failure cases and only removes a few thousand controls.
+new_in_old = np.isin(new_fam, old_fam)
 if not np.all(old_fam == np.sort(old_fam)):
     print("error1: code expects the fam file from step 4 to have sorted eids")
     exit()
-if not np.all(new_fam == old_fam[old_in_new]):
+if not np.all(new_fam[new_in_old] == old_fam[old_in_new]):
     print("error2: code expects the fam file from step 4 to have sorted eids")
     exit()
 
 geno_path = "../step8_get_imputed_ukb_samples/filtered_output/UKB_samples_chr" + chr
-pheno_path = "../step7_adjust_HF_for_covariates/binary_HF_values.txt"
-PCs_path = "../step7_adjust_HF_for_covariates/binary_HF_genetic_PCs.txt"
-Betas_path = "../step7_adjust_HF_for_covariates/binary_HF_PC_betas.txt"
+pheno_path = "../step7_adjust_HF_for_covariates_logistic_PCA/binary_HF_values.txt"
+PCs_path = "../step7_adjust_HF_for_covariates_logistic_PCA/binary_HF_genetic_PCs.txt"
+Betas_path = "../step7_adjust_HF_for_covariates_logistic_PCA/binary_HF_PC_betas.txt"
 rsIDs = pd.read_csv(geno_path  + ".bim", delim_whitespace = True, header = None)[1]
 
 phenotypes_info = pd.read_csv(pheno_path, delimiter = "\t").loc[old_in_new, :]
@@ -79,7 +83,7 @@ PCs = PCs_info[PCs_info.columns[PCs_info.columns != "eid"]].to_numpy()
 PCs2 = np.concatenate([PCs, np.ones((len(PCs), 1))], axis = 1)
 LR_offset_all = np.matmul(PCs2, Betas)
 
-path = "../step7_adjust_HF_for_covariates/X_cleaned_data.txt"
+path = "../step7_adjust_HF_for_covariates_logistic_PCA/X.txt"
 gender_data = pd.read_csv(path, delimiter = "\t", usecols = ["eid", "22001-0.0"], dtype = int)
 new_fam_df = pd.DataFrame(np.array([new_fam, np.arange(len(new_fam))]).T)
 new_fam_df.columns = ["eid", "index"] 
@@ -128,6 +132,7 @@ for j in tqdm(range(j_start, len(intervals) - 1)):
     #     continue
 
     genotypes = open_bed(geno_path  + ".bed", num_threads = 1).read(np.s_[sorted_indices, col_indices])
+    genotypes = genotypes[new_in_old, :]
     is_male2 = is_male
     if chr == "Y":
         genotypes, is_male2  = genotypes[is_male], is_male[is_male]
