@@ -1,6 +1,0 @@
-install STAR_outliers from https://github.com/EpistasisLab/STAR_outliers
-
-run the following command:
-
-python -m STAR_outliers --input phenotypes.txt --pcutoff 0.993 --bound 99 --index eid
-python -m STAR_outliers --input env_factors.txt --pcutoff 0.993 --bound 99 --index eid
