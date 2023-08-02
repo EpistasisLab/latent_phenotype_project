@@ -5,7 +5,7 @@
 #BSUB -R "rusage[mem=20000MB]"
 #BSUB -M 20000MB
 
-module load plink/1.90Beta
+module load plink/1.90Beta6.18
 
 plink --memory 15000 --bfile ../step4_remove_relatives/UKB_samples_unrelated --keep data_subset_content/subset1.tab --make-bed --out data_subset_content/UKB_samples_filtered_subset1
 plink --memory 15000 --bfile ../step4_remove_relatives/UKB_samples_unrelated --keep data_subset_content/subset2.tab --make-bed --out data_subset_content/UKB_samples_filtered_subset2
