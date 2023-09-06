@@ -4,75 +4,77 @@ IMPORTANT: File names are listed and described in the order that they are suppos
 
 IMPORTANT: Any file name containing "step0" is not meant to be run directly. Rather, some other file in the sequence calls that file to run when necessary.
 
+NOTE: Directories are ordered from top to bottom as the sequence in which they should be run. 
+
 ## Directory: step1_get_phenotypes_complex
 
- - `step1a_get_UKB_phenotypes.py`: imports data fields from our our UKB data copies. Selects the first measured value for each field when multiple measurements are taken over time. Modified pack years of smoking to be 0 for nonsmokers and missing otherwise. Computes each individual's total annual alcohol consumption. Converts categorical variables into binary variables. Replaces certain missing values with 0 when appropriate.
+ - `step1a_get_UKB_phenotypes.py`: Imports and processes UK biobank (UKB) data fields. Handles multiple measurements, modifies smoking pack years, calculates annual alcohol consumption, and binarizes categorical variables.
 
- - `step1a_library.py`: contains functions used by step1a_get_UKB_phenotypes.py 
+ - `step1a_library.py`: Functions used by `step1a_get_UKB_phenotypes.py`.
 
 ## Directory: step1_get_phenotypes_simple
 
- - `step1a_import_HF_ICD_codes_and_covariates.py`: Imports more fields. Binarizes some and renames others.
+ - `step1a_import_HF_ICD_codes_and_covariates.py`: Imports additional UKB data fields related to heart failure; binarizes and renames as needed.
 
- - `step1b_process_HF_ICD_codes_and_covariates.py`: Binarizes the ICD code statuses for each patient (1 for present, 0 for absent). Creates the all cause heart failure variable (referred to as "any_HF"). Removes ICD code columns not significantly correlated to all cause heart failure.
+ - `step1b_process_HF_ICD_codes_and_covariates.py`: Binarizes ICD codes, creates the all cause heart failure binary phenotype ('AHF' in text, 'any_HF' in code), and removes ICD codes not significantly correlated to AHF.
 
 ## Directory: step2_get_UKB_samples
 
- - `step2a_make_UKB_sample_getters.py`: makes bash scripts that read in non-imputed genotype data for each individual.
+ - `step2a_make_UKB_sample_getters.py`:  Generates bash scripts for importing individual' non-imputed genotype data.
 
- - `step2b_get_UKB_samples.sh`: runs all bash scripts generated in the previous step
+ - `step2b_get_UKB_samples.sh`: Executes bash scripts from the previous step to collect genotype samples.
 
 ## Directory: step3_merge_chr_and_remove_quitters
 
- - `step3a_get_people_who_quit.py`: creates a list of eids corresponding to individuals who disallowed the UK biobank from continuing to use their data.
+ - `step3a_get_people_who_quit.py`: generates a list of individuals who opted out of UKB data use (from other manually typed lists).
 
- - `step3b_merge_datasets.sh`: merges the chromosomes' plink files from step 2 into a single file. Removes individuals who quit according to the list from step3a.
+ - `step3b_merge_datasets.sh`: Merges plink files from Step 2; removes opt-out individuals.
 
- - `step3c_find_SNP_cutoffs.py`: generates figures related to SNPs' MAFs, individual missingness tates, and hardy weinberg equilibrium p values to help us determine removal thresholds. 
+ - `step3c_find_SNP_cutoffs.py`: Plots SNPs' minor allele frequencies, missingness, and HWE p-values (exploratory only).
 
- - `step3d_remove_bad_SNPs.sh`: removes all SNPs exceeding our selected MAF, hardy weinberg equilibrium p value, or SNP missingness rate thresholds.
+ - `step3d_remove_bad_SNPs.sh`: Removes SNPs exceeding thresholds for aforementioned quantities.
 
- - `step3e_find_sample_cutoffs.py`: generates figures related to individuals' heterozygosity, average SNP missingness rates, and X chromosome heterozygosity F scores.  
+ - `step3e_find_sample_cutoffs.py`: Plots individuals' heterozygosity, average SNP missingness, and X chromosome heterozygosity scores (exploratory only).
 
- - `step3f_remove_bad_samples.sh`: removes all individuals exceeding our selected heterozygosity, X chromosome heterozygosity F score, or average SNP missingness thresholds. 
+ - `step3f_remove_bad_samples.sh`: Removes individuals exceeding thresholds for aforementioned quantities.
 
 ## Directory: step4_remove_relatives
 
- - `step4a_divide_eids_into_subsets_prep.py`: divides the eids remaining after step 3 into 10 equally sized subsets. 
+ - `step4a_divide_eids_into_subsets_prep.py`: Splits remaining eids from Step 3 into 10 equal subsets. 
 
- - `step4b_divide_eids_into_subsets.sh`: Divides the SNPs into ten subsets as determined by the ten eid subsets in the previous step. The remainder eids are removed.
+ - `step4b_divide_eids_into_subsets.sh`: Partitions plink files based on the 10 eid subsets; removes remainder eids.
 
- - `step4c_make_king_subjobs.py`: Based on the ten new SNP subset plink files, KING subjob bash scripts are generated with this python file. 
+ - `step4c_make_king_subjobs.py`: Generates a bash script that runs KING for each SNP subset and each pair of SNP subsets.
 
- - `step4d_run_king_subjobs.sh`: This file runs the KING subjob bash scripts that the previous step generated. 
+ - `step4d_run_king_subjobs.sh`: Runs KING through the previously generated bash scripts. King outputs all pairs of related individuals with 3rd degree relatedness or more. 
 
- - `step4e_get_unrelated_eids.py`: This file takes all pairs of individuals that are third degree relatives or higher and prunes individuals from the dataset such that, in order of importance, 1) no pair of individuals in the remaining dataset are higher than fourth degree relatives, 2) the number of all cause heart failure cases is maximized, and 3) the number of total individuals is maximized. This means that fewer total individuals are accepted when doing so increases the number of cases. 
+ - `step4e_get_unrelated_eids.py`: Prunes dataset to keep only 4th degree or less related individuals. The number of all-cause heart failure cases is prioritized over the total sample size. Both are maximized with that in mind. 
 
- - `step4f_remove_relatives.sh`: removes the individuals that were selected in the previous step to ensure that GWAS is conducted on unrelated individuals. Also creates a pruned version of this dataset with a subset of SNPs in low LD with one-another to be used in computing the SNPs' principal components to adjust for population stratification.  
+ - `step4f_remove_relatives.sh`: Excludes relatives based on prior steps. From these unrelated individuals, creates a pruned SNP dataset such that all SNPs are in low LD for genetic principle component computation. Also keeps the non-pruned dataset.
 
 ## Directory: step5_verify_sample_unrelatedness
 
- - `step5a_divide_eids_into_subsets_prep.py`: For the purpose of validating step 4, divides the eids remaining after step 3 into 10 equally sized subsets. 
+- `step5a_divide_eids_into_subsets_prep.py`: Splits eids from Step 3 into 10 equal subsets. 
 
- - `step5b_divide_eids_into_subsets.sh`: For the purpose of validating step 4, divides the SNPs into ten subsets as determined by the ten eid subsets in the previous step.
+- `step5b_divide_eids_into_subsets.sh`: Partitions plink files into 10 subsets corresponding to the eid subsets.
 
- - `step5c_make_king_subjobs.py`: For the purpose of validating step 4, based on the ten new SNP subset plink files, KING subjob bash scripts are generated with this python file. 
+- `step5c_make_king_subjobs.py`: Generates a bash script to run KING for each SNP subset and each pair of SNP subsets.
 
- - `step5d_run_king_subjobs.sh`: For the purpose of validating step 4, this file runs the KING subjob bash scripts that the previous step generated.  
+- `step5d_run_king_subjobs.sh`: Executes the KING subjob scripts.
 
- - `step5e_confirm_unrelatedness.py`: For the purpose of validating step 4, this file confirms that the output from step5d_run_king_subjobs.sh has identified no related individuals from the output of step 4. 
+- `step5e_confirm_unrelatedness.py`: Confirms that no related individuals remain post-Step 4. This validates that KING was used correctly.
 
 ## Directory: step6_PCA
 
- - `check_LD.sh`: Computes the LD between SNP pairs from the pruned SNP set generated by step4f_remove_relatives.sh
+- `check_LD.sh`: Computes LD between SNP pairs in pruned SNP set from Step 4.
 
- - `check_LD.py`: Confirms that no SNP pairs' R^2 value output by check_LD.sh exceeds the threshold set in step4f_remove_relatives.sh
-
- - `step0_run_PCA.par`: specifies parameters for eigensoft to compute principal components 
+- `check_LD.py`: Validates that plink was used correctly, so no SNP pairs exceed the LD R^2 threshold from Step 4.
  
- - `step6a_make_PCA_documents.py`: generates files for eigensoft to compute principal components
+- `step0_run_PCA.par`: Specifies parameters for Eigensoft's PCA computation.
 
- - `step6b_run_PCA.sh`: tells eigensoft to compute principal components
+- `step6a_make_PCA_documents.py`: Prepares input files for Eigensoft's PCA.
+
+- `step6b_run_PCA.sh`: Executes PCA computation using Eigensoft.
 
 ## Directory: step7_adjust_HF_for_covariates_logistic_PCA
 
@@ -301,5 +303,4 @@ IMPORTANT: Any file name containing "step0" is not meant to be run directly. Rat
  - `step11l_make_supp_figs.py`: Makes tables S1, S2, S3, and S4. Makes figures S1 and S2. Makes some input for figure S3a. 
 
  - `step11m_finish_fig_S3a.R`: Finishes figure S3a. 
-
 
