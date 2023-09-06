@@ -1,8 +1,10 @@
 # latent_phenotype_project 
 
-IMPORTANT: File names are listed and described in the order that they are supposed to be run. 
+NOTE: File names are listed and described in the order that they are supposed to be run. 
 
-IMPORTANT: Any file name containing "step0" is not meant to be run directly. Rather, some other file in the sequence calls that file to run when necessary.
+NOTE: Any file name containing "step0" is not meant to be run directly. Rather, some other file in the sequence calls that file to run when necessary.
+
+NOTE: Descriptions for files that are called by other files but do not have "step0" in the name start with "DO NOT RUN DIRECTLY"
 
 NOTE: Directories are ordered from top to bottom as the sequence in which they should be run. 
 
@@ -78,75 +80,75 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
 ## Directory: step7_adjust_HF_for_covariates_logistic_PCA
 
- - `step7a_get_HF_ICD_codes_unrelated.py`: Imports phenotypes and relevant UK biobank fields corresponding to the eids of unrelated individuals determined in step 4.
+ - `step7a_get_HF_ICD_codes_unrelated.py`: Imports phenotypes and relevant UK Biobank fields for unrelated individuals from Step 4.
 
- - `step7b_logPCA_transform_the_data.py`: DO NOT RUN DIRECTLY. This file applies logistic PCA dimensionality reduction to 311 ICD10 codes and all cause heart failure. The number of latent features to generate is specified via argparse with parameter k. Also generates the 16th latent phenotype defined by the all-cause heart failure residuals. Adjusts all latent phenotypes by the principal components from step 6.
+ - `step7b_logPCA_transform_the_data.py`: DO NOT RUN DIRECTLY. Applies logistic PCA to 311 ICD10 codes and heart failure. Creates latent phenotypes (k specified via argparse) and adjusts them using PCs from Step 6.
 
- - `step7b_logPCA_transform_the_data.sh`: This file runs step7b_logPCA_transform_the_data.py to create latent features for k = 1, 2, ..., 20. We have ended up using k = 15 in the paper. 
+ - `step7b_logPCA_transform_the_data.sh`: Executes the above for k = 1 to 20; paper uses k=15.
 
- - `step7c_impute_missing_values.py`: DO NOT RUN DIRECTLY. This file applies MICE imputation to environmental factors' missing values. Features are filtered based on their strongest correlation with the environmental factors that missing values are being imputed for. A threshold for this correlation is specified via argparse parameter "nn". Also simulates different types of missingness to measure the imputation accuracy. 
+ - `step7c_impute_missing_values.py`: DO NOT RUN DIRECTLY. Applies MICE imputation to environmental factors with missing values. Correlation threshold for feature selection specified via "nn".
 
- - `step7c_impute_missing_values.sh`: This file runs step7c_impute_missing_values.py to create latent features for nn = 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, and 0.1. We ended up using 0.05 in the paper. 
+ - `step7c_impute_missing_values.sh`: Runs the above for various nn values; paper uses nn=0.05. 
 
- - `step7d_get_imputed_values_and_trasformed_variables.py`: essentially runs like step7c_impute_missing_values.py. The argparse nn parameter is not included, but instead set at 0.05. Also missingness is not simulated this time. Rather, missing values are imputed, and environmental factors with imputed missing values are produced. 
+ - `step7d_get_imputed_values_and_trasformed_variables.py`: Similar to above, but sets nn at 0.05 and does not simulate missingness. Outputs imputed environmental factors.
 
- - `step7d_get_imputed_values_and_trasformed_variables.sh`: Runs step7d_get_imputed_values_and_trasformed_variables.py. You could just run step7d_get_imputed_values_and_trasformed_variables.py directly, but it's runtime is such that submitting a job is less prone to disruption. 
+ - `step7d_get_imputed_values_and_trasformed_variables.sh`: Executes the above, recommended for job submission due to long runtime.
 
- - `step7e_get_PCs_effs.py`: Produces files with genetic principle components and beta coefficients for logistic regression between all cause heart failure and the genetic principle components. Used for genetic PC correction of the standard logistic regression GWAS analysis on all cause heart failure that we compared to our own method. 
+ - `step7e_get_PCs_effs.py`: Outputs logistic regression beta coefficients for genetic PCs vs AHF, used to correct the standard logistic regression GWAS against AHF. 
 
 ## Directory: step7_adjust_HF_for_covariates_NN
 
- - `step7a_create_AE_phenotypes.py`: DO NOT RUN DIRECTLY. given a number of nodes in the autoencoder's first layer, the number of folds for cross validation, and the dropout probability, computes the average test accuracy of a trained autoencoder. The latent dimensions of this autoencoder comprise the autoencoder's (sometimes referred to as "NN" in path names) latent phenotypes. All 311 ICD codes and all cause heart failure were included as input.
+- `step7a_create_AE_phenotypes.py`: DO NOT RUN DIRECTLY. Computes autoencoder test accuracy based on layer nodes, cross-validation folds, and dropout rate. Generates latent phenotypes.
 
- - `step7a_create_AE_phenotypes.sh`: Runs step7a_create_AE_phenotypes.py for 1000 nodes in the first layer, 5 fold cross validation, and dropout probabilities 0.05, ..., 0.5. From these, dropout probability 0.3 was selected for the next step. 
+- `step7a_create_AE_phenotypes.sh`: Runs the above for specified nodes, folds, and dropout rates; paper uses 0.3 dropout.
 
- - `step7b_create_best_phenotypes_normal_AE_0.3dop.py`: Uses the selected architecture to train a neural network without cross validation for the final model that produces autoencoder latent phenotypes. Model was trained twice prior to using it to produce the latent phenotypes. Training it the second time used resulting weights from the first time as starting points. 
+- `step7b_create_best_phenotypes_normal_AE_0.3dop.py`: Trains final autoencoder model twice, using the first run's weights as a starting point for the second.
 
- - `step7b_create_best_phenotypes_normal_AE_0.3dop.sh`: Run this to run step7b_create_best_phenotypes_normal_AE_0.3dop.py for training and retraining. 
+- `step7b_create_best_phenotypes_normal_AE_0.3dop.sh`: Executes the above model training.
 
- - `step7c_impute_missing_values.py`: DO NOT RUN DIRECTLY. This file applies MICE imputation to environmental factors' missing values. Features are filtered based on their strongest correlation with the environmental factors that missing values are being imputed for. A threshold for this correlation is specified via argparse parameter "nn". Also simulates different types of missingness to measure the imputation accuracy. 
+- `step7c_impute_missing_values.py`: DO NOT RUN DIRECTLY. Uses MICE to impute missing environmental data, selecting features based on correlation "nn".
 
- - `step7c_impute_missing_values.sh`: This file runs step7c_impute_missing_values.py to create latent features for nn = 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, and 0.1. We ended up using 0.05 in the paper. 
+- `step7c_impute_missing_values.sh`: Executes imputation for various "nn"; paper uses nn=0.05.
 
- - `step7d_get_imputed_values_and_trasformed_variables.py`: essentially runs like step7c_impute_missing_values.py. The argparse nn parameter is not included, but instead set at 0.05. Also missingness is not simulated this time. Rather, missing values are imputed, and environmental factors with imputed missing values are produced. 
+- `step7d_get_imputed_values_and_transformed_variables.py`: Similar to above, fixes "nn" at 0.05 and outputs imputed factors.
 
- - `step7d_get_imputed_values_and_trasformed_variables.sh`: Runs step7d_get_imputed_values_and_trasformed_variables.py. You could just run step7d_get_imputed_values_and_trasformed_variables.py directly, but it's runtime is such that submitting a job is less prone to disruption. 
+- `step7d_get_imputed_values_and_transformed_variables.sh`: Executes the above, recommended for job submission.
 
- - `step7e_compute_network_shapley_values.py`: computes Shapley value contributions of ICD10 codes and all cause heart failure to a specifiedd autoencoder-based latent phenotype. 
+- `step7e_compute_network_shapley_values.py`: Calculates Shapley values for each latent phenotype.
 
- - `step7e_compute_network_shapley_values.sh`: applies step7e_compute_network_shapley_values.py to each such latent phenotype. 
+- `step7e_compute_network_shapley_values.sh`: Applies the above to all latent phenotypes.
 
- - `step7f_analyze_shapley_values.py`: generates dendrograms for correlations between shapley values with either high mean absolute values or high correlations to other features' shapley values. 
+- `step7f_analyze_shapley_values.py`: Produces dendrograms based on correlations of high-impact or high-correlation Shapley values.
 
 ## Directory: step7_adjust_HF_for_covariates_PCA
 
- - `step0_compute_SV_p_values.py`: Analyzes which ICD10 codes' shapley values are most responsible for observed correlations between SNPs and latent phenotypes. Used by step7g_sub_phenotype_analysis.sh
+- `step0_compute_SV_p_values.py`: Identifies key ICD10 codes affecting SNP-latent phenotype correlations. Used by `step7g_sub_phenotype_analysis.sh`.
 
- - `step7a_get_HF_ICD_codes_unrelated.py`: Imports phenotypes and relevant UK biobank fields corresponding to the eids of unrelated individuals determined in step 4.
+- `step7a_get_HF_ICD_codes_unrelated.py`: Fetches unrelated individuals' phenotypes and UK Biobank fields from Step 4.
 
- - `step7b_PCA_transform_the_data.py`: This file applies  PCA dimensionality reduction to 311 ICD10 codes and all cause heart failure. Also generates the 16th latent phenotype defined by the all-cause heart failure residuals. Adjusts all latent phenotypes by the principal components from step 6.
+- `step7b_PCA_transform_the_data.py`: Performs PCA on 311 ICD10 codes and all-cause heart failure, adjusting latent phenotypes with PCs from Step 6.
 
- - `step7c_impute_missing_values.py`: This file applies MICE imputation to environmental factors' missing values. Features are filtered based on their strongest correlation with the environmental factors that missing values are being imputed for. A threshold for this correlation is specified via argparse parameter "nn". Also simulates different types of missingness to measure the imputation accuracy. Rather than test multiple values, we selected nn = 0.05 for consistency and confirmed that the imputation accuracy is higher than mean imputation. 
+- `step7c_impute_missing_values.py`: Applies MICE imputation to environmental factors, using a fixed "nn" of 0.05. Confirmed to outperform mean imputation.
 
- - `step7d_get_imputed_values_and_trasformed_variables.py`: essentially runs like step7c_impute_missing_values.py. The argparse nn parameter is not included, but instead set at 0.05. Also missingness is not simulated this time. Rather, missing values are imputed, and environmental factors with imputed missing values are produced. 
+- `step7d_get_imputed_values_and_transformed_variables.py`: Similar to `step7c`, but with "nn" fixed at 0.05 and no missingness simulation. Outputs imputed factors.
 
- - `step7e_compute_network_shapley_values.py`: computes Shapley value contributions of ICD10 codes and all cause heart failure to each PCA-based latent phenotype. 
+- `step7e_compute_network_shapley_values.py`: Calculates Shapley values for ICD10 codes and heart failure in PCA-based latent phenotypes.
 
- - `step7f_analyze_shapley_values.py`: generates dendrograms for correlations between shapley values with either high mean absolute values or high correlations to other features' shapley values. 
+- `step7f_analyze_shapley_values.py`: Generates dendrograms based on Shapley value correlations.
 
- - `step7g_sub_phenotype_analysis.sh`: Runs step0_compute_SV_p_values.py with different numbers of top ICD10 codes' shapley values to include in the subset analysis. 
+- `step7g_sub_phenotype_analysis.sh`: Executes `step0_compute_SV_p_values.py` for varying numbers of top-contributing ICD10 codes.
 
 ## Directory: step8_get_imputed_ukb_samples
 
- - `step8.1_get_imputed_data_setup.py`: for each chromosome, creates a shell script for importing imputed SNPs on which GWAS is conducted.   
- 
- - `step8.2_get_rsID_positions.py`: For each chromosome, creates a list of SNPs to removes for having a MAF that is too low or from containing too little information. 
+- `step8.1_get_imputed_data_setup.py`: Generates shell scripts for importing GWAS-targeted, imputed SNPs per chromosome.
 
- - `step8.3_get_eids.py`: creates a file specifying which unrelated individuals to keep.
+- `step8.2_get_rsID_positions.py`: Lists SNPs to remove per chromosome based on low MAF or insufficient information.
 
- - `step8.4_get_imputed_data.sh`: Runs the bash scripts created in step8.1_get_imputed_data_setup.py
+- `step8.3_get_eids.py`: copies a file identifying which unrelated individuals to retain in the analysis.
 
- - `step8.5_make_bims_tab_spaced.py`: does what the file name suggests. 
+- `step8.4_get_imputed_data.sh`: Executes shell scripts from `step8.1`.
+
+- `step8.5_make_bims_tab_spaced.py`: Converts BIM files to tab-spaced format.
 
 ## Directory: step9_regress_phenotypes_against_SNPs_logistic_PCA
 
