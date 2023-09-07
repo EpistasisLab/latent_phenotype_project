@@ -204,79 +204,79 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
  - `step0_compute_GxE_p_values.py`: given an rsID, chromosome, latent phenotype, and environmental factor as input, computes a permutation test p value for the pure GxE effect. 
 
- - `step0_filter_significant_SNPs_and_get_GxE_effects.py`: for a specified chromosome and environmental factor, for each latent phenotype, divides all SNP hits with those attributes into computationally tractable intervals. For each interval, selects independent SNPs with forward selection stepwise regression. Outputs files with independent SNP hits into the appropriate hits_QTL_[ENVIRONMENTAL FACTOR] directory. Also, for each independent SNP hit, creates a bash file in the "hits_GxE_p_vals_getters_[ENVIRONMENTAL FACTOR] directory that runs step0_compute_GxE_p_values.py
+ - `step0_filter_significant_SNPs_and_get_GxE_effects.py`: For each chromosome and environmental factor, for each latent phenotype, segments SNP hits into intervals, and selects independently nominally significant SNPs. For each independent SNP hit, prepares a bash file to run `step0_compute_GxE_p_values.py`
 
- - `step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py`: If outputs files with independent SNP hits exist in the appropriate hits_QTL_[ENVIRONMENTAL FACTOR] directory, then for each independent SNP hit, creates a bash file in the "hits_GxE_p_vals_getters_[ENVIRONMENTAL FACTOR] directory that runs step0_compute_GxE_p_values.py
+ - `step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py`: If independent SNP hits files are available, prepares bash files to run `step0_compute_GxE_p_values.py as described previously.
 
- - `step10a_get_significant_rsIDs.py`: Retreives all rsIDS corresponding to SNP hits with a nominal TRACE p value < 5E-8/16 (a bonferroni correction for the number of latent phenotypes)
+ - `step10a_get_significant_rsIDs.py`: Retreives all rsIDS corresponding to SNP hits with a nominal TRACE p value < 5E-8/16 (16 is a bonferroni correction for the number of latent phenotypes)
 
- - `step10b_get_significant_SNPs.sh`: Retreives plink files for all SNPs corresponding to the rsIDs from the previous step
+ - `step10b_get_significant_SNPs.sh`: Retreives plink files for all SNPs from the previous step
 
- - `step10c_filter_significant_SNPs_and_get_GxE_effects.sh`: applies step0_filter_significant_SNPs_and_get_GxE_effects.py to all chromosomes and environmental factors
+ - `step10c_filter_significant_SNPs_and_get_GxE_effects.sh`: applies `step0_filter_significant_SNPs_and_get_GxE_effects.py` to all chromosomes and environmental factors
 
- - `step10c_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.sh`: applies step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py to all chromosomes and environmental factors 
+ - `step10c_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.sh`: applies `step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py` to all chromosomes and environmental factors 
 
- - `step10d_get_significant_GxE_p_values.sh`: applies step0_compute_GxE_p_values.py to all independently nominally significant rsIDs.  
+ - `step10d_get_significant_GxE_p_values.sh`: applies `step0_compute_GxE_p_values.py` to all independently nominally significant rsIDs.  
 
- - `step10e_access_common_SNPs.py`: for the appropriate latent phenotype set (either PCA, logistic PCA, or the autoencoder), produces a list of main effects, gene by smoking interaction effects, gene by alcohol interaction effects, gene by gender interaction effects, and gene by exercise interaction effects. Also produces a list counting the number of each such effect for each latent phenotype. Also produces data (step10e_p_val_analysis.txt) for the p-value analysis in table 1b of the manuscript. Some code for machine learning exists beyond that point, but it is largely replaced with step10g.
+ - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with logistic PCA latent phenotypes, counts of each effect, and data for table 1b (step10e_p_val_analysis.txt). Machine learning is deferred to step10g. 
 
- - `step10f_get_CV_folds.py`: Produces 30 index sets for outer training and outer validation folds that step10g uses to perform nested cross validation for the machine learning analysis. 
+ - `step10f_get_CV_folds.py`: Generates 30 outer training/validation index sets for nested cross-validation.
 
- - `step10g_get_CV_testing_accuracy.py`: for a specified set of the 30 index sets previously generated, computes 10 fold cross validation on the outer training set. Outputs optimal parameters for the gradient boosting model as well as accuracy on the outer validation set. 
+ - `step10g_get_CV_testing_accuracy.py`: For 1 of the 30 outer index sets, conducts 10-fold cross-validation on the training set. Reports optimal model parameters and validation accuracy.
 
- - `step10g_get_CV_testing_accuracy.sh`: applies step10g_get_CV_testing_accuracy.py to all 30 folds. 
+ - `step10g_get_CV_testing_accuracy.sh`: applies `step10g_get_CV_testing_accuracy.py` to all 30 outer training/validation index sets.
 
 ## Directory: step10_get_significant_SNPs_NN
 
  - `step0_compute_GxE_p_values.py`: given an rsID, chromosome, latent phenotype, and environmental factor as input, computes a permutation test p value for the pure GxE effect. 
 
- - `step0_filter_significant_SNPs_and_get_GxE_effects.py`: for a specified chromosome and environmental factor, for each latent phenotype, divides all SNP hits with those attributes into computationally tractable intervals. For each interval, selects independent SNPs with forward selection stepwise regression. Outputs files with independent SNP hits into the appropriate hits_QTL_[ENVIRONMENTAL FACTOR] directory. Also, for each independent SNP hit, creates a bash file in the "hits_GxE_p_vals_getters_[ENVIRONMENTAL FACTOR] directory that runs step0_compute_GxE_p_values.py
+ - `step0_filter_significant_SNPs_and_get_GxE_effects.py`: For each chromosome and environmental factor, for each latent phenotype, segments SNP hits into intervals, and selects independently nominally significant SNPs. For each independent SNP hit, prepares a bash file to run `step0_compute_GxE_p_values.py`
 
- - `step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py`: If outputs files with independent SNP hits exist in the appropriate hits_QTL_[ENVIRONMENTAL FACTOR] directory, then for each independent SNP hit, creates a bash file in the "hits_GxE_p_vals_getters_[ENVIRONMENTAL FACTOR] directory that runs step0_compute_GxE_p_values.py
+ - `step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py`: If independent SNP hits files are available, prepares bash files to run `step0_compute_GxE_p_values.py as described previously.
 
- - `step10a_get_significant_rsIDs.py`: Retreives all rsIDS corresponding to SNP hits with a nominal TRACE p value < 5E-8/16 (a bonferroni correction for the number of latent phenotypes)
+ - `step10a_get_significant_rsIDs.py`: Retreives all rsIDS corresponding to SNP hits with a nominal TRACE p value < 5E-8/16 (16 is a bonferroni correction for the number of latent phenotypes)
 
- - `step10b_get_significant_SNPs.sh`: Retreives plink files for all SNPs corresponding to the rsIDs from the previous step
+ - `step10b_get_significant_SNPs.sh`: Retreives plink files for all SNPs from the previous step
 
- - `step10c_filter_significant_SNPs_and_get_GxE_effects.sh`: applies step0_filter_significant_SNPs_and_get_GxE_effects.py to all chromosomes and environmental factors
+ - `step10c_filter_significant_SNPs_and_get_GxE_effects.sh`: applies `step0_filter_significant_SNPs_and_get_GxE_effects.py` to all chromosomes and environmental factors
 
- - `step10c_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.sh`: applies step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py to all chromosomes and environmental factors  
+ - `step10c_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.sh`: applies `step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py` to all chromosomes and environmental factors  
 
- - `step10d_get_significant_GxE_p_values.sh`: applies step0_compute_GxE_p_values.py to all independently nominally significant rsIDs.  
+ - `step10d_get_significant_GxE_p_values.sh`: applies `step0_compute_GxE_p_values.py` to all independently nominally significant rsIDs.  
 
- - `step10e_access_common_SNPs.py`: for the appropriate latent phenotype set (either PCA, logistic PCA, or the autoencoder), produces a list of main effects, gene by smoking interaction effects, gene by alcohol interaction effects, gene by gender interaction effects, and gene by exercise interaction effects. Also produces a list counting the number of each such effect for each latent phenotype. Also produces data (step10e_p_val_analysis.txt) for the p-value analysis in table 1b of the manuscript. Some code for machine learning exists beyond that point, but it is largely replaced with step10g. 
+ - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with NN latent phenotypes, counts of each effect, and data for table 1b (step10e_p_val_analysis.txt). Machine learning is deferred to step10g. 
 
- - `step10f_get_CV_folds.py`: Produces 30 index sets for outer training and outer validation folds that step10g uses to perform nested cross validation for the machine learning analysis. 
+ - `step10f_get_CV_folds.py`: Generates 30 outer training/validation index sets for nested cross-validation.
 
- - `step10g_get_CV_testing_accuracy.py`: for a specified set of the 30 index sets previously generated, computes 10 fold cross validation on the outer training set. Outputs optimal parameters for the gradient boosting model as well as accuracy on the outer validation set.  
+ - `step10g_get_CV_testing_accuracy.py`: For 1 of the 30 outer index sets, conducts 10-fold cross-validation on the training set. Reports optimal model parameters and validation accuracy.
 
- - `step10g_get_CV_testing_accuracy.sh`: applies step10g_get_CV_testing_accuracy.py to all 30 folds. 
+ - `step10g_get_CV_testing_accuracy.sh`: applies `step10g_get_CV_testing_accuracy.py` to all 30 outer training/validation index sets.
 
 ## Directory: step10_get_significant_SNPs_PCA
 
  - `step0_compute_GxE_p_values.py`: given an rsID, chromosome, latent phenotype, and environmental factor as input, computes a permutation test p value for the pure GxE effect. 
 
- - `step0_filter_significant_SNPs_and_get_GxE_effects.py`: for a specified chromosome and environmental factor, for each latent phenotype, divides all SNP hits with those attributes into computationally tractable intervals. For each interval, selects independent SNPs with forward selection stepwise regression. Outputs files with independent SNP hits into the appropriate hits_QTL_[ENVIRONMENTAL FACTOR] directory. Also, for each independent SNP hit, creates a bash file in the "hits_GxE_p_vals_getters_[ENVIRONMENTAL FACTOR] directory that runs step0_compute_GxE_p_values.py
+ - `step0_filter_significant_SNPs_and_get_GxE_effects.py`: For each chromosome and environmental factor, for each latent phenotype, segments SNP hits into intervals, and selects independently nominally significant SNPs. For each independent SNP hit, prepares a bash file to run `step0_compute_GxE_p_values.py`
 
- - `step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py`: If outputs files with independent SNP hits exist in the appropriate hits_QTL_[ENVIRONMENTAL FACTOR] directory, then for each independent SNP hit, creates a bash file in the "hits_GxE_p_vals_getters_[ENVIRONMENTAL FACTOR] directory that runs step0_compute_GxE_p_values.py
+ - `step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py`: If independent SNP hits files are available, prepares bash files to run `step0_compute_GxE_p_values.py as described previously.
 
- - `step10a_get_significant_rsIDs.py`: Retreives all rsIDS corresponding to SNP hits with a nominal TRACE p value < 5E-8/16 (a bonferroni correction for the number of latent phenotypes). 
+ - `step10a_get_significant_rsIDs.py`: Retreives all rsIDS corresponding to SNP hits with a nominal TRACE p value < 5E-8/16 (16 is a bonferroni correction for the number of latent phenotypes). 
 
- - `step10b_get_significant_SNPs.sh`: Retreives plink files for all SNPs corresponding to the rsIDs from the previous step
+ - `step10b_get_significant_SNPs.sh`: Retreives plink files for all SNPs from the previous step
 
- - `step10c_filter_significant_SNPs_and_get_GxE_effects.sh`: applies step0_filter_significant_SNPs_and_get_GxE_effects.py to all chromosomes and environmental factors
+ - `step10c_filter_significant_SNPs_and_get_GxE_effects.sh`: applies `step0_filter_significant_SNPs_and_get_GxE_effects.py` to all chromosomes and environmental factors
 
- - `step10c_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.sh`: applies step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py to all chromosomes and environmental factors  
+ - `step10c_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.sh`: applies `step0_filter_significant_SNPs_and_get_GxE_effects_LAST_PART_ONLY.py` to all chromosomes and environmental factors  
 
- - `step10d_get_significant_GxE_p_values.sh`: applies step0_compute_GxE_p_values.py to all independently nominally significant rsIDs.  
+ - `step10d_get_significant_GxE_p_values.sh`: applies `step0_compute_GxE_p_values.py` to all independently nominally significant rsIDs.  
 
- - `step10e_access_common_SNPs.py`: for the appropriate latent phenotype set (either PCA, logistic PCA, or the autoencoder), produces a list of main effects, gene by smoking interaction effects, gene by alcohol interaction effects, gene by gender interaction effects, and gene by exercise interaction effects. Also produces a list counting the number of each such effect for each latent phenotype. Also produces data (step10e_p_val_analysis.txt) for the p-value analysis in table 1b of the manuscript. Some code for machine learning exists beyond that point, but it is largely replaced with step10g.
+ - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with PCA latent phenotypes, counts of each effect, and data for table 1b (step10e_p_val_analysis.txt). Machine learning is deferred to step10g.
 
- - `step10f_get_CV_folds.py`: Produces 30 index sets for outer training and outer validation folds that step10g uses to perform nested cross validation for the machine learning analysis. 
+ - `step10f_get_CV_folds.py`: Generates 30 outer training/validation index sets for nested cross-validation.
 
- - `step10g_get_CV_testing_accuracy.py`: for a specified set of the 30 index sets previously generated, computes 10 fold cross validation on the outer training set. Outputs optimal parameters for the gradient boosting model as well as accuracy on the outer validation set. 
+ - `step10g_get_CV_testing_accuracy.py`: For 1 of the 30 outer index sets, conducts 10-fold cross-validation on the training set. Reports optimal model parameters and validation accuracy.
 
- - `step10g_get_CV_testing_accuracy.sh`: applies step10g_get_CV_testing_accuracy.py to all 30 folds. 
+ - `step10g_get_CV_testing_accuracy.sh`: applies `step10g_get_CV_testing_accuracy.py` to all 30 outer training/validation index sets.
 
 ## Directory: step11_analyze_complete_dataset
 
