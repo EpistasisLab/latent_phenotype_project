@@ -302,7 +302,7 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
 - `step11j_make_figure3b.sh`: Prepares files for Figure 3b, including six default SNPs and one additional independent SNP (rs73188900) found in the previous step.
 
-- `step11k_make_table1.R`: Creates Figure 3b and Table 1 using the output from the previous step.
+- `step11k_make_table1.R`: Creates Figure 3b and Table 1 using the output from the previous step. Also generates figure 1.
 
 - `step11l_make_supp_figs.py`: Produces Tables S1-S4 and Figures S1, S2, and partial input for Figure S3a.
 
