@@ -163,7 +163,8 @@ gender_table <- gt(gender_table,
   ) %>%
   opt_horizontal_padding(scale = 3)
 gender_table
-gtsave(gender_table, "table2c.docx")
+table2c_df <- as.data.frame(gender_table$`_data`)
+write.table(table2c_df, "table2c.txt", sep = "\t", row.names = FALSE, quote = FALSE)
 gtsave(gender_table, "table2c.png")
 
 table_S6c <- TFs_out_KEGG@result[TFs_out_KEGG@result[6] < 0.05, c(1, 6, 9, 8)] %>%
@@ -298,8 +299,10 @@ main_table <- gt(main_table,
   ) %>%
   opt_horizontal_padding(scale = 3)
 main_table
-gtsave(main_table, "table2a.docx")
+table2a_df <- as.data.frame(main_table$`_data`)
+write.table(table2a_df, "table2a.txt", sep = "\t", row.names = FALSE, quote = FALSE)
 gtsave(main_table, "table2a.png")
+
 table_S6a <- info_GO[[4]][c("ID", "p.adjust", "Count", "geneID")] %>%
              arrange(p.adjust) %>% 
              rename(`GO gene set ID` = ID, 
@@ -327,6 +330,8 @@ write.table(MIRs, "MIRS_smoking.txt", row.names=FALSE, col.names=FALSE, sep="\t"
 #
 # paste the miRNA names from MIRS_smoking.txt into the appropriate step at
 # https://ccb-compute2.cs.uni-saarland.de/mieaa2/user_input/
+# Select "miRNA" in step 1
+# Select "miRNA enrichment analysis ((G)SEA)" in step 2
 # Then you'll get a list of miRNA names not on record.
 # Put that file in your working directory and rename it "MIRS_smoking_unknown.txt"
 #
@@ -344,6 +349,7 @@ write.table(MIRs2, "MIRS2_smoking.txt", row.names=FALSE, col.names=FALSE, sep="\
 #
 # paste the miRNA names from MIRS_smoking.txt into the appropriate step at
 # https://ccb-compute2.cs.uni-saarland.de/mieaa2/user_input/
+# select "Pathways (KEGG)" in step 5
 # download the output file and rename it "miEAA.csv"
 #
 #---------------------------------------------------------------------------------------------------------
@@ -397,7 +403,8 @@ smoking_table <- gt(smoking_table,
   ) %>%
   opt_horizontal_padding(scale = 3)
 smoking_table
-gtsave(smoking_table, "table2b.docx")
+table2b_df <- as.data.frame(smoking_table$`_data`)
+write.table(table2b_df, "table2b.txt", sep = "\t", row.names = FALSE, quote = FALSE)
 gtsave(smoking_table, "table2b.png")
 
 table_S6b <- miEAA_hits[c("Subcategory", 

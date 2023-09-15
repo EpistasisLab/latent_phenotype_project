@@ -218,7 +218,7 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
  - `step10d_get_significant_GxE_p_values.sh`: applies `step0_compute_GxE_p_values.py` to all independently nominally significant rsIDs.  
 
- - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with logistic PCA latent phenotypes, counts of each effect, and data for table 1b (step10e_p_val_analysis.txt). Machine learning is deferred to step10g. 
+ - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with logistic PCA latent phenotypes, counts of each effect, and data for table 1a (step10e_p_val_analysis.txt). Machine learning is deferred to step10g. 
 
  - `step10f_get_CV_folds.py`: Generates 30 outer training/validation index sets for nested cross-validation.
 
@@ -244,7 +244,7 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
  - `step10d_get_significant_GxE_p_values.sh`: applies `step0_compute_GxE_p_values.py` to all independently nominally significant rsIDs.  
 
- - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with NN latent phenotypes, counts of each effect, and data for table 1b (step10e_p_val_analysis.txt). Machine learning is deferred to step10g. 
+ - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with NN latent phenotypes, counts of each effect, and data for table 1a (step10e_p_val_analysis.txt). Machine learning is deferred to step10g. 
 
  - `step10f_get_CV_folds.py`: Generates 30 outer training/validation index sets for nested cross-validation.
 
@@ -270,7 +270,7 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
  - `step10d_get_significant_GxE_p_values.sh`: applies `step0_compute_GxE_p_values.py` to all independently nominally significant rsIDs.  
 
- - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with PCA latent phenotypes, counts of each effect, and data for table 1b (step10e_p_val_analysis.txt). Machine learning is deferred to step10g.
+ - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with PCA latent phenotypes, counts of each effect, and data for table 1 (step10e_p_val_analysis.txt). Machine learning is deferred to step10g.
 
  - `step10f_get_CV_folds.py`: Generates 30 outer training/validation index sets for nested cross-validation.
 
@@ -280,9 +280,11 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
 ## Directory: step11_analyze_complete_dataset
 
- - `step11a_merge_rsID_output.py`: Generates Table 1a and effect-specific rsID file pairs (rsIDs_*_effects.txt and rsIDs_*_effects_pvals.txt, where * is the effect type)  for FUMA input. 
+### Code Files
 
- - `FUMA details`: For each rsID file pair, Inputs both files into FUMA with a placeholder total sample size of 380000. It is merely a required input that does not effect the distances between SNP hits and genes, thereby making it irrelevant. Initially uses a 500KB gene-SNP distance, later refined to 300KB for precision with small gene count reduction. Skips gene by exercise interactions due to limited hits. Renames FUMA output files as annov_*.txt. for clarity, where * = (main, smoking, gender, alcohol).
+ - `step11a_merge_rsID_output.py`: Generates Table 1b and effect-specific rsID file pairs (rsIDs_*_effects.txt and rsIDs_*_effects_pvals.txt, where * is the effect type)  for FUMA input. 
+
+ - `Important Note on FUMA details`: For each rsID file pair, Inputs both files into FUMA with a placeholder total sample size of 380000. It is merely a required input that does not effect the distances between SNP hits and genes, thereby making it irrelevant. Initially uses a 500KB gene-SNP distance, later refined to 300KB for precision with small gene count reduction. Skips gene by exercise interactions due to limited hits. Renames FUMA output files as annov_*.txt. for clarity, where * = (main, smoking, gender, alcohol).
 
  - `step11b_get_enrichment_all.R`: IMPORTANT; run in sections, not all at once. Intermediate manual steps generate miEAA.csv, which lists KEGG-enriched miRNA pathways. Uses FUMA outputs and rsIDs_*_effects.txt as input. Generates Tables 2 and S6. 
 
@@ -290,20 +292,146 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
  - `step11d_ldlink.sh`:  Sends files from previous step to LDlink, fetching data on prior GWAS hits in LD with each SNP hit. 
 
- - `step11e_make_SNP_tables_LD_pruning.py`: Creates Table 1b, counting independent GWAS SNP hits that output from step11d_ldlink.sh finds are related to AHF. The term list "possible_AHF_terms" was manually curated and validated through substring matching of terms related to cardiovascular dysfunction in the output from step11d_ldlink.sh. 
+ - `step11e_make_SNP_tables_LD_pruning.py`: Creates Table 1a, counting independent GWAS SNP hits that output from step11d_ldlink.sh finds are related to AHF. The term list "possible_AHF_terms" was manually curated and validated through substring matching of terms related to cardiovascular dysfunction in the output from step11d_ldlink.sh. 
 
  - `step11f_miRNA_enrichment_analysis.R`: IMPORTANT; run in sections, not all at once. Computes p-values for enrichment of genic SNP hits in genes that enrich miRNA. Produces Tables 3 and S7. Manual steps are clearly outlined for gene-disease associations. Also uses data from Genevestigator ("see genevestigator_hits_methods folder").
 
  - `step11g_make_heritability_figure.py`: Generates Table S5b and Figure 3a using outputs from step10g_get_CV_testing_accuracy.sh across PCA, logistic_PCA, and NN directories.
 
-- `step11h_confirm_model_consistency.py`: Generates Tables 1c and 1d as per manuscript methods.
+ - `step11h_confirm_model_consistency.py`: Generates Tables 1c and 1d as per manuscript methods.
   
-- `step11i_get_independent_normal_GWAS_SNPs.py`: Identifies SNP hits from standard logistic GWAS that are independent of six default AHF-defining SNPs.
+ - `step11i_get_independent_normal_GWAS_SNPs.py`: Identifies SNP hits from standard logistic GWAS that are independent of six default AHF-defining SNPs.
 
-- `step11j_make_figure3b.sh`: Prepares files for Figure 3b, including six default SNPs and one additional independent SNP (rs73188900) found in the previous step.
+ - `step11j_make_figure3b.sh`: Prepares files for Figure 3b, including six default SNPs and one additional independent SNP (rs73188900) found in the previous step.
 
-- `step11k_make_table1.R`: Creates Figure 3b and Table 1 using the output from the previous step. Also generates figure 1.
+ - `step11k_make_table1.R`: Creates Figure 3b and Table 1 using the output from the previous step. Also generates figure 1.
 
-- `step11l_make_supp_figs.py`: Produces Tables S1-S4 and Figures S1, S2, and partial input for Figure S3a.
+ - `step11l_make_supp_figs.py`: Produces Tables S1-S4 and Figures S1, S2, and partial input for Figure S3a.
 
-- `step11m_finish_fig_S3a.R`: Completes Figure S3a.
+ - `step11m_finish_fig_S3a.R`: Completes Figure S3a.
+
+### Intermediate Files
+
+ - `annov_alcohol.txt`: relevant FUMA output when using `rsIDs_GxAlcohol_effects.txt` and `rsIDs_GxAlcohol_effects_pvals.txt` as input. Originally named "annov.txt".
+
+ - `annov_gender.txt`: relevant FUMA output when using `rsIDs_GxGender_effects.txt` and `rsIDs_GxGender_effects_pvals.txt` as input. Originally named "annov.txt".
+
+ - `annov_main.txt`: relevant FUMA output when using `rsIDs_main_effects.txt` and `rsIDs_main_effects_pvals.txt` as input. Originally named "annov.txt".
+
+ - `annov_smoking.txt`: relevant FUMA output when using `rsIDs_GxSmoking_effects.txt` and `rsIDs_GxSmoking_effects_pvals.txt` as input. Originally named "annov.txt".
+
+ - `disease_gene_associations_logistic_PCA_smoking.tsv`: Output from entering "CASZ1::AKR7A3::PPIE::HIVEP3::SSBP3::ST6GALNAC3::DPYD::NOS1AP::DDR2::SLC9A2::THSD7B::RAPGEF4::GPR155::ALS2::CHL1::IL5RA::THRB::CACNA2D3::CADPS::PRICKLE2::ROBO1::GAP43::LSAMP::AGTR1::MED12L::SERPINI1::MECOM::PARL::ST6GAL1::MUC4::EVC2::NPNT::HPGD::TENM3::LPCAT1::DROSHA::PRLR::GHR::EDIL3::CHSY3::FAM53C::EXOC2::ATXN1::BTBD9::TFEB::RUNX2::ESR1::TMEM242::PDE10A::COX19::ICA1::CREB5::PKD1L1::CALN1::CALCR::RINT1::ATXN7L1::DGKI::DPP6::TNFRSF10B::ADRA1A::ASPH::HNF4G::UBR5::TBC1D31::TMEM65::SH3GL2::FBP1::PALM2-AKAP2::GARNL3::FAM107B::CXCL12::MYPN::CDH23::CCDC147::SORCS3::RBM20::GRK5::ATE1::SYT9::SBF2::SLC22A8::TENM4::MAML2::NTM::TMTC1::ANO4::ATP12A::LRCH1::HTR2A::KLHL1::GPC6::FNTB::GALNT16::SMOC1::MAP3K9::KCNK13::C14orf159::ITPK1::UNC79::EML1::RYR3::WDR72::UNC13C::ARNT2::KIAA1199::PDE8A::SLCO3A1::CDIP1::NXN::PIK3R5::CA10::GAA::PIEZO2::BCL2::CLEC4M::ZNF627::SLC1A6::KDELR1::MACROD2::PCSK2::STX16-NPEPL1::CDH4::RIPK4::POF1B" into https://www.disgenet.org/search. Output file was originally named "54897__22977__10450__59269__23648__256435__1806__9722__4921__6549__80731__11069__151556__57679__10752__3568__7068__55799__8618__166336__6091__2596__4045__185__116931__5274__2122__55486__6480__4585__132884__2557.tsv" and was downloaded on 9/12/2023. 
+
+ - `disease_gene_associations_NN_smoking.tsv`: Output from entering "EPHA8::PGM1::SCCPDH::CNTNAP5::PLEKHM3::CNTN3::MAP1B::GRK6::GLP1R::COL19A1::SCARA5::ANP32B::NAV2::KSR2::TMEM132B::XYLT1::AP2B1::DMD" into https://www.disgenet.org/search. Output file was originally named "2046__5236__129684__389072__5067__4131__2870__2740__1310__286133__10541__89797__283455__114795__64131__163__1756_gene_gda_summary.tsv" and was downloaded on 9/12/2023. 
+
+ - `disease_gene_associations_PCA_smoking.tsv`: Output from entering "CAMTA1::ECE1::HSPG2::CSMD2::NFIA::LPAR3::CHIA::KCNN3::PAPPA2::SOX13::PTPN14::TP53BP2::DNAH14::PCNXL2::GPR137B::RYR2::OR2L13::GRHL1::ALK::NDUFAF7::GALM::SLC8A1::PRKCE::STON1-GTF2A1L::GPR75-ASB3::EML6::ARHGAP25::LRRTM4::CTNNA2::ACVR1::STK39::CCDC173::PDE11A::CCDC141::PAX3::SRGAP3::DYNC1LI1::ROBO2::GUCA1C::IGSF11::ADCY5::NEK11::MLF1::PHC3::TNIK::KCNMB2::EIF2B5::EIF2B5::LPP::DLG1::CLNK::KCNIP4::GPR125::GABRB1::FIP1L1::EPHA5::DCLK2::KIAA0922::RAPGEF2::TRIO::MYO10::EGFLAM::PDE4D::ARHGEF28::ARSB::EFNA5::GRAMD3::UBE2D2::STK32A::COL23A1::F13A1::DEK::CDKAL1::OPN5::EYS::EPHA7::PREP::CLVS2::TRDN::PERP::HIVEP2::SYNE1::SMOC2::GET4::TNRC18::HDAC9::JAZF1::AMPH::GLI3::WBSCR17::GTPBP10::COL26A1::TBXAS1::CNTNAP2::CSMD1::SGCZ::CSGALNACT1::PIWIL2::DPYSL2::ELP3::ZMAT4::XKR4::CNGB3::SDC2::NCALD::MTSS1::ASAP1::KCNQ3::SLA::ZFAT::KANK1::AK3::OSTF1::PCSK5::GNAQ::TLE1::STX17::ZNF462::SUSD1::COL27A1::AKNA::BRINP1::DENND1A::CAMK1D::C1QL3::RSU1::PARD3::TSPAN14::HPS1::CTBP2::C10orf90::TMEM41B::INSC::NELL1::SLC17A6::SHANK2::DLG2::RAB38::OPCML::RAD52::SLC2A14::GRIN2B::TMCC3::ANKS1B::NUP37::BRAP::DTX1::CCDC92::TMEM132D::CRYL1::ATP8A2::FREM2::FAM124A::PCDH9::ABCC4::NALCN::COL4A1::DCUN1D2::NPAS3::EGLN3::RGS6::CDC42BPB::ATP10A::GABRB3::GABRG3::MEIS2::FBN1::CGNL1::RORA::VPS13C::ZNF609::KIAA1024::PDE8A::MFGE8::ABHD2::CERS3::ADAMTS18::WWOX::CDH13::STX8::PRKCA::SLC39A11::RIT2::ST8SIA5::DCC::MBP::ATP9B::ATCAY::TICAM1::C19orf47::PSG8::PLAUR::ZNF227::VASP::SLC17A7::ZNF175::ZBTB45::PTPRT::CDH22::RUNX1::YBEY::CECR2::CABIN1::SGSM1::LARGE::MPPED1::PJA1" into https://www.disgenet.org/search. Output file was originally named "23261__1889__3339__114784__4774__23566__27159__3782__60676__9580__5784__7159__127602__7107__6262__284521__29841__238__55471__130589__6546__5581__286749__100302652__400954__9938__80059__1496__90__27347__50940__2.tsv" and was downloaded on 9/12/2023. 
+
+ - `miEAA.csv`: Output from entering `MIRS_smoking.txt`into https://ccb-compute2.cs.uni-saarland.de/mieaa2/user_input/ by following manual steps 1 and 2 in `step11b_get_enrichment_all.R`. Was originally named "miEAA - miRNA Enrichment and Annotation -- Analysis results.csv" and was downloaded on 5/29/2023.  
+
+ - `rsIDs_GxAlcohol_effects.txt`: FUMA input. Refer to `Important Note on FUMA details`. 
+
+ - `rsIDs_GxAlcohol_effects_pvals.txt`: FUMA input. Refer to `Important Note on FUMA details`.
+
+ - `rsIDs_GxExercise_effects.txt`: Not used as FUMA input due to there being only one SNP hit. 
+
+ - `rsIDs_GxExercise_effects_pvals.txt`: Not used as FUMA input due to there being only one SNP hit. 
+
+ - `rsIDs_GxGender_effects.txt`: FUMA input. Refer to `Important Note on FUMA details`.
+
+ - `rsIDs_GxGender_effects_pvals.txt`: FUMA input. Refer to `Important Note on FUMA details`.
+
+ - `rsIDs_GxSmoking_effects.txt`: FUMA input. Refer to `Important Note on FUMA details`.
+
+ - `rsIDs_GxSmoking_effects_pvals.txt`: FUMA input. Refer to `Important Note on FUMA details`.
+
+ - `rsIDs_main_effects.txt`: FUMA input. Refer to `Important Note on FUMA details`.
+
+ - `rsIDs_main_effects_pvals.txt`: FUMA input. Refer to `Important Note on FUMA details`.
+
+ - `SNP_MAFs_rsIDs_GxAlcohol_effects.txt`: for possible future use
+
+ - `SNP_MAFs_rsIDs_GxExercise_effects.txt`: for possible future use
+
+ - `SNP_MAFs_rsIDs_GxGender_effects.txt`: for possible future use
+
+ - `SNP_MAFs_rsIDs_GxSmoking_effects.txt`: used by `step11f_miRNA_enrichment_analysis.R` and for possible future use
+
+ - `SNP_MAFs_rsIDs_main_effects.txt`: for possible future use
+
+ - `step11e_logistic_PCA_GxAlcohol_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_logistic_PCA_GxAlcohol_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_logistic_PCA_GxGender_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_logistic_PCA_GxGender_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_logistic_PCA_GxSmoking_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a. Used by `step11f_miRNA_enrichment_analysis.R` to make input for https://www.disgenet.org/search.
+
+ - `step11e_logistic_PCA_GxSmoking_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a. Used by `step11f_miRNA_enrichment_analysis.R` to make input for https://www.disgenet.org/search.
+
+ - `step11e_logistic_PCA_main_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_logistic_PCA_main_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_NN_GxAlcohol_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_NN_GxAlcohol_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_NN_GxGender_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_NN_GxGender_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_NN_GxSmoking_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a. Used by `step11f_miRNA_enrichment_analysis.R` to make input for https://www.disgenet.org/search.
+
+ - `step11e_NN_GxSmoking_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a. Used by `step11f_miRNA_enrichment_analysis.R` to make input for https://www.disgenet.org/search.
+
+ - `step11e_NN_main_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_NN_main_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_PCA_GxAlcohol_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_PCA_GxAlcohol_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_PCA_GxGender_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_PCA_GxGender_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_PCA_GxSmoking_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a. Used by `step11f_miRNA_enrichment_analysis.R` to make input for https://www.disgenet.org/search.
+
+ - `step11e_PCA_GxSmoking_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a. Used by `step11f_miRNA_enrichment_analysis.R` to make input for https://www.disgenet.org/search.
+
+ - `step11e_PCA_main_rsIDs_known.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+ - `step11e_PCA_main_rsIDs_novel.txt`: Shows SNP hit subsets used by `step10e_access_common_SNPs.py` to make table 1a.
+
+### Output Files
+
+ - `step11f_logistic_PCA_miRNA_associated_genic_SNP_enrichment.txt`: counts and p-value for enrichment of logistic PCA SNP hits inside of genes linked to miRNA
+
+ - `step11f_NN_miRNA_associated_genic_SNP_enrichment.txt`: counts and p-value for enrichment of NN SNP hits inside of genes linked to miRNA
+
+ - `step11f_PCA_miRNA_associated_genic_SNP_enrichment.txt`: counts and p-value for enrichment of PCA SNP hits inside of genes linked to miRNA
+
+ - `table1a.txt`: refer to manuscript
+
+ - `table1b.txt`: refer to manuscript
+
+ - `table1c.txt`: refer to manuscript
+
+ - `table1d.txt`: refer to manuscript
+
+ - `table2a.txt`: refer to manuscript
+
+ - `table2b.txt`: refer to manuscript
+
+ - `table2c.txt`: refer to manuscript
+
+ - `table3a.txt`: refer to manuscript
+
+ - `table3b.txt`: refer to manuscript
+
+ - `table3c.txt`: refer to manuscript
+
+ - `table3d.txt`: refer to manuscript

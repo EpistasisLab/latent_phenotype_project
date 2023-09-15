@@ -24,9 +24,9 @@ write.table(mir_rsids, "MIRS_rsids.txt", row.names = F, col.names = T, sep="\t",
 # MANUAL STEP
 # run this code to print 3 lists of :: seperated gene symbols.
 # the 1st, 2nd, and 3rd lists are for PCA, logistic PCA, and NN respectively.
-# input each gene list into the database (https://www.disgenet.org/dbinfo)
+# input each gene list into the database (https://www.disgenet.org/search)
 # make sure "genes" is selected in the options above the search box
-# then download each summary of gene-disease associations file.
+# then download each "summary of gene-disease associations" file.
 # name them  "disease_gene_associations_PCA_smoking.tsv",
 #            "disease_gene_associations_logistic_PCA_smoking.tsv", and
 #            "disease_gene_associations_NN_smoking.tsv" respectively. 
@@ -142,6 +142,9 @@ for (model in c("PCA", "logistic_PCA", "NN")) {
   colnames(data) <- c("mir", "not_mir")
   tables[[i]] <- data
   tests[[i]] <- fisher.test(data)
+  fname2 <- paste("step11f_", model, "_miRNA_associated_genic_SNP_enrichment.txt", sep = "")
+  write.table(tables[[i]], file = fname2,  sep = "\t", quote = FALSE)
+  write(paste("\nP-value:", tests[[i]]$p.value), file = fname2, append = TRUE)
   
   fig_rsIDs <- mir_rsids_i[mir_rsids_i[, "annot"] == "intronic", "rsID"]
   fig_keepers <- match(fig_rsIDs, rsIDs_model_novel[["rsID"]])
@@ -213,6 +216,8 @@ for (model in c("PCA", "logistic_PCA", "NN")) {
   i = i + 1
 }
 
+
+
 both_top_five <- Reduce(rbind, novel_rsiD_tables_both) %>% 
                  filter(.data$average_abs_all > 0.4) %>% 
                  arrange(desc(gda_score_sum)) %>% 
@@ -223,11 +228,13 @@ both_top_five <- Reduce(rbind, novel_rsiD_tables_both) %>%
                        `gda score sum` = gda_score_sum,
                        `average DE log2(fold change)` = average_all, 
                        `number of DE reps` = num_hits_all) %>% 
-                 slice(1:5)
-both_roles <- c("apoptosis",
+                 slice(1:7)
+both_roles <- c("load-bearing connective tissues", 
+                "apoptosis",
+                "cardiac cytoskeleton development",
                 "G protein",
                 "CVD-related mRNA regulation",
-                "CVD-related transcription regulation",
+                "CVD-related regulation of transcription ",
                 "multiple CVD-related pathways")
 
 Reduce(rbind, novel_rsiD_tables_both) %>% 
@@ -241,11 +248,13 @@ pheno_top_five <- Reduce(rbind, novel_rsiD_tables_pheno) %>%
                   rename(`gene symbol` = symbol, 
                          `best p value` = best_p_value,
                          `gda score sum` = gda_score_sum) %>% 
-                  slice(1:5)
+                  slice(1:7)
 pheno_roles <- c("cardiac calcium channel",
+                 "basement membrane component",
                  "estrogen receptor",
                  "endothelin converting enzyme",
                  "cardiac muscle contraction",
+                 "sodium-calcium exchange",
                  "perlecan protein")
 
 Reduce(rbind, novel_rsiD_tables_pheno) %>% 
@@ -263,12 +272,14 @@ env_top_five <- Reduce(rbind, novel_rsiD_tables_env) %>%
                        `best p value` = best_p_value,
                        `average DE log2(fold change)` = average_all, 
                        `number of DE reps` = num_hits_all) %>% 
-                slice(1:5)
+                slice(1:7)
 env_roles  <- c("neurogenesis",
                 "chondroitin sulfate assembly",
                 "cytoskeleton formation",
                 "chloride transport",
-                "potassium channels")
+                "potassium channels",
+                "mitochondrial membrane complex",
+                "endoplasmic reticulum protein")
 
 Reduce(rbind, novel_rsiD_tables_env) %>% 
 arrange(desc(num_hits_all), desc(average_abs_all)) %>% 
@@ -280,11 +291,13 @@ neither_top_5 <- Reduce(rbind, novel_rsiD_tables_neither) %>%
                         "best_p_value", "maf") %>% 
                  rename(`gene symbol` = symbol, 
                         `best p value` = best_p_value) %>% 
-                 slice(1:5)
+                 slice(1:7)
 neither_roles <- c("Vesicle trafficking protein",
                    "Transcription factor",
+                   "sodium ion channel",
+                   "actin filament organization",
                    "glycosylation",
-                   "Ras regulator",
+                   "Ras regulator", 
                    "mTOR regulator")
 
 Reduce(rbind, novel_rsiD_tables_neither) %>% 
@@ -292,19 +305,19 @@ arrange(best_p_value) %>%
 write.table("table_S7d.txt", sep = "\t", row.names = F, col.names = T)
 
 gene_functions <- list(both_roles, pheno_roles, env_roles, neither_roles)
-tables <- list(both_top_five, pheno_top_five, env_top_five, neither_top_5)
+tables2 <- list(both_top_five, pheno_top_five, env_top_five, neither_top_5)
 out_tables <- list()
-docx_names <- c("top_five_both.docx", "top_five_pheno.docx", 
-                "top_five_env.docx", "top_5_neither.docx")
+tsv_names <- c("table3a.txt", "table3b.txt", 
+               "table3c.txt", "table3d.txt")
 png_names <- c("table3a.png", "table3b.png", 
                "table3c.png", "table3d.png")
 
 for (i in 1:4) {
 
       role <- gene_functions[[i]]
-      table <- tables[[i]] %>% 
+      table <- tables2[[i]] %>% 
       add_column(`function` = role, .after = 1)
-      docx_name <- docx_names[i]
+      tsv_name <- tsv_names[i]
       png_name <- png_names[i]
       table <- gt(table, 
                   rowname_col = "gene symbol") %>%
@@ -335,10 +348,10 @@ for (i in 1:4) {
       tab_stubhead(label = "gene symbol") %>% 
       cols_width(
         `gene symbol` ~ px(125),
-        `function` ~ px(160),
-        `rsID` ~ px(130),
-        `phenotype model` ~ px(125),
-        `best p value` ~ px(125),
+        `function` ~ px(195),
+        `rsID` ~ px(120),
+        `phenotype model` ~ px(115),
+        `best p value` ~ px(120),
         `maf` ~ px(60),
       ) %>%
       tab_options(
@@ -392,7 +405,8 @@ for (i in 1:4) {
     }
       
     out_tables[[i]] <- table
-    gtsave(table, docx_name)
+    table_df <- as.data.frame(table$`_data`)
+    write.table(table_df, tsv_name, sep = "\t", row.names = FALSE, quote = FALSE)
     gtsave(table, png_name)
 }
 

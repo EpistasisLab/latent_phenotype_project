@@ -13,10 +13,10 @@ suffixes = ["rsIDs_" + i + "_effects.txt" for i in suffixes]
 bim_suffixes = ["alcohol", "exercise", "smoking", "gender"]
 bim_suffixes = ["significant_SNPs_plink_files_" + i for i in bim_suffixes]
 bim_files = []
-table1a = []
+table1b = []
 for prefix in prefixes:
-    table1a_path = prefix + "/step10e_p_val_analysis.txt"
-    table1a.append(pd.read_csv(table1a_path, delimiter = "\t")) 
+    table1b_path = prefix + "/step10e_p_val_analysis.txt"
+    table1b.append(pd.read_csv(table1b_path, delimiter = "\t")) 
 
     paths = [prefix + "/" + suffix for suffix in bim_suffixes]
     all_paths = []
@@ -25,13 +25,13 @@ for prefix in prefixes:
     info = [pd.read_csv(path, delimiter = "\t", header = None) for path in all_paths]
     bim_files.append(pd.concat(info)[[1, 0, 3]])
 
-table1a = pd.concat(table1a)
-table1a["model"] = prefix_ends
+table1b = pd.concat(table1b)
+table1b["model"] = prefix_ends
 ordered_names = ["model", "TRACE vs. linear logp Mean", "p-value", "conditional logp Mean", "conditional p-value"]
 new_names = ["latent phenotype model", "TRACE vs. linear E[logp]", "p-value", "conditional E[logp]", "conditional p-value"]
-table1a = table1a[ordered_names]
-table1a.columns = new_names
-table1a.to_csv("table1a.txt", sep = "\t", header = True, index = False)
+table1b = table1b[ordered_names]
+table1b.columns = new_names
+table1b.to_csv("table1b.txt", sep = "\t", header = True, index = False)
 
 bim_files = pd.concat(bim_files).drop_duplicates(1)
 bim_files.columns = ["rsID", "chr", "pos"]

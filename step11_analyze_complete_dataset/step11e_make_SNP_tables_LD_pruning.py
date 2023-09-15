@@ -162,4 +162,4 @@ cols += ["GxSmoking_Novel_SNP", "GxSmoking_Known_SNP"]
 cols += ["GxGender_Novel_SNP", "GxGender_Known_SNP"]
 cols += ["GxAlcohol_Novel_SNP", "GxAlcohol_Known_SNP"]
 counts2.columns = cols
-counts2.to_csv("table1b.txt", sep = "\t", header = True, index = False)
+counts2.to_csv("table1a.txt", sep = "\t", header = True, index = False)
