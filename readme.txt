@@ -435,3 +435,16 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
  - `table3c.txt`: refer to manuscript
 
  - `table3d.txt`: refer to manuscript
+
+### Resource Folders
+
+ - `all_sig_rsIDs_logistic_PCA`: all statistically significant SNP hits for logistic PCA latent phenotypes
+
+ - `all_sig_rsIDs_NN`: all statistically significant SNP hits for NN latent phenotypes
+
+ - `all_sig_rsIDs_PCA`: all statistically significant SNP hits for PCA latent phenotypes
+
+ - `genevestigator_hits`: all studies with differentially expressed genes
+
+ - `genevestigator_hits_methods`: contains methodological details regarding `genevestigator_hits`
+
