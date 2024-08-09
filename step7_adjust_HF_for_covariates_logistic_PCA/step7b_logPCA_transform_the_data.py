@@ -86,12 +86,39 @@ def link_pairs(pairs):
     return(groups)
 
 X_df = pd.read_csv("X.txt", delimiter = "\t", header = 0)
+#------------------------------------------------------------------------------------------------------------------------------------
+# start of step 7 methodology change for reviewers
+#------------------------------------------------------------------------------------------------------------------------------------
+X_df["eid"] = X_df["eid"].astype(int)
+path = "/home/greggj/pleiotropy_and_GxE/step1_get_my_phenotypes_complex/reformatted_fields.txt"
+townsend_index = pd.read_csv(path, delimiter = "\t", usecols = ["eid", "189-average"])
+townsend_index.columns = ["eid", "townsend index"]
+X_df = X_df.merge(townsend_index, on = "eid", how = "inner")
+X_df.loc[np.isnan(X_df["townsend index"]), "townsend index"] = np.mean(X_df["townsend index"])
+X_df.loc[np.isnan(X_df["age"]), "age"] = np.mean(X_df["age"])
+#------------------------------------------------------------------------------------------------------------------------------------
+# end of step 7 methodology change for reviewers
+#------------------------------------------------------------------------------------------------------------------------------------
+
 X_cols = np.array(X_df.columns)
 X_cols[X_cols == "22001-0.0"] = "is_male"
 X_df.columns = X_cols
 X = X_df[X_cols[X_cols != "eid"]].to_numpy() 
 X_cols = X_cols[X_cols != "eid"]
 is_PC = np.array([col[0:2] == "PC" for col in X_cols])
+
+#------------------------------------------------------------------------------------------------------------------------------------
+# start of step 7 methodology change for reviewers
+#------------------------------------------------------------------------------------------------------------------------------------
+# age, gender, and townsend index features are now included in the regression. 
+# also, only PCs 1-6 are included
+is_PC2 = np.isin(X_cols, ["age", "is_male", "townsend index"])
+is_PC += is_PC2
+include_if_PC = np.isin(X_cols, ["PC" + str(i) for i in (np.arange(14) + 7)]) == False
+is_PC *= include_if_PC
+#------------------------------------------------------------------------------------------------------------------------------------
+# end of step 7 methodology change for reviewers
+#------------------------------------------------------------------------------------------------------------------------------------
 PCs = X[:, is_PC]
 
 y_df = pd.read_csv("y.txt", delimiter = "\t", header = 0)
