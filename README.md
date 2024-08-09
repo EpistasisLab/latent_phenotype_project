@@ -106,7 +106,7 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
 - `step7b_create_best_phenotypes_normal_AE_0.3dop.sh`: Executes the above model training.
 
-- `step7b2_normalize_phenotypes.py`: normalizes the AE phenotypes. 
+- `step7b2_normalize_phenotypes.py`: Normalizes the AE phenotypes. 
 
 - `step7c_impute_missing_values.py`: DO NOT RUN DIRECTLY. Uses MICE to impute missing environmental data, selecting features based on correlation "nn".
 
