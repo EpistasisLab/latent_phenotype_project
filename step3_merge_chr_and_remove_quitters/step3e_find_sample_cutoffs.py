@@ -57,6 +57,16 @@ male_outlier_FIDs = males.loc[male_outlier_indices , "FID"].to_numpy()
 low_quality_FIDs1 = np.union1d(het_outlier_FIDs, miss_outlier_FIDs)
 low_quality_FIDs2 = np.union1d(female_outlier_FIDs, male_outlier_FIDs)
 low_quality_FIDs = np.union1d(low_quality_FIDs1, low_quality_FIDs2)
+
+#------------------------------------------------------------------------------------------------------------------------------------
+# start of step 3 methodology change for reviewers
+#------------------------------------------------------------------------------------------------------------------------------------
+non_WB_eids = pd.read_csv("non_white_british_eids.tab", sep = "\t", header = None)[0].to_numpy()
+low_quality_FIDs = np.union1d(low_quality_FIDs, non_WB_eids)
+#------------------------------------------------------------------------------------------------------------------------------------
+# end of step 3 methodology change for reviewers
+#------------------------------------------------------------------------------------------------------------------------------------
+
 low_quality_FIDs = pd.DataFrame(np.array([low_quality_FIDs, low_quality_FIDs]).T)
 low_quality_FIDs.to_csv("low_quality_FIDs.txt", sep = "\t", header = False, index = False)
 
