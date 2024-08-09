@@ -118,8 +118,6 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
 ## Directory: step7_adjust_HF_for_covariates_PCA
 
-- `step0_compute_SV_p_values.py`: Identifies key ICD10 codes affecting SNP-latent phenotype correlations. Used by `step7g_sub_phenotype_analysis.sh`.
-
 - `step7a_get_HF_ICD_codes_unrelated.py`: Fetches unrelated individuals' phenotypes and UK Biobank fields from Step 4.
 
 - `step7b_PCA_transform_the_data.py`: Performs PCA on 311 ICD10 codes and all-cause heart failure, adjusting latent phenotypes with PCs from Step 6.
