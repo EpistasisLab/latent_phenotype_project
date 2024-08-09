@@ -204,13 +204,7 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
  - `step10d_get_significant_GxE_p_values.sh`: applies `step0_compute_GxE_p_values.py` to all independently nominally significant rsIDs.  
 
- - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with logistic PCA latent phenotypes, counts of each effect, and data for table 1a (step10e_p_val_analysis.txt). Machine learning is deferred to step10g. 
-
- - `step10f_get_CV_folds.py`: Generates 30 outer training/validation index sets for nested cross-validation.
-
- - `step10g_get_CV_testing_accuracy.py`: For 1 of the 30 outer index sets, conducts 10-fold cross-validation on the training set. Reports optimal model parameters and validation accuracy.
-
- - `step10g_get_CV_testing_accuracy.sh`: applies `step10g_get_CV_testing_accuracy.py` to all 30 outer training/validation index sets.
+ - `step10e_access_common_SNPs.py`: Generates list of main effects.
 
 ## Directory: step10_get_significant_SNPs_NN
 
@@ -230,13 +224,7 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
  - `step10d_get_significant_GxE_p_values.sh`: applies `step0_compute_GxE_p_values.py` to all independently nominally significant rsIDs.  
 
- - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with NN latent phenotypes, counts of each effect, and data for table 1a (step10e_p_val_analysis.txt). Machine learning is deferred to step10g. 
-
- - `step10f_get_CV_folds.py`: Generates 30 outer training/validation index sets for nested cross-validation.
-
- - `step10g_get_CV_testing_accuracy.py`: For 1 of the 30 outer index sets, conducts 10-fold cross-validation on the training set. Reports optimal model parameters and validation accuracy.
-
- - `step10g_get_CV_testing_accuracy.sh`: applies `step10g_get_CV_testing_accuracy.py` to all 30 outer training/validation index sets.
+ - `step10e_access_common_SNPs.py`: Generates list of main effects.
 
 ## Directory: step10_get_significant_SNPs_PCA
 
@@ -256,13 +244,7 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
  - `step10d_get_significant_GxE_p_values.sh`: applies `step0_compute_GxE_p_values.py` to all independently nominally significant rsIDs.  
 
- - `step10e_access_common_SNPs.py`: Generates lists of main and interaction effects for various environmental factors with PCA latent phenotypes, counts of each effect, and data for table 1 (step10e_p_val_analysis.txt). Machine learning is deferred to step10g.
-
- - `step10f_get_CV_folds.py`: Generates 30 outer training/validation index sets for nested cross-validation.
-
- - `step10g_get_CV_testing_accuracy.py`: For 1 of the 30 outer index sets, conducts 10-fold cross-validation on the training set. Reports optimal model parameters and validation accuracy.
-
- - `step10g_get_CV_testing_accuracy.sh`: applies `step10g_get_CV_testing_accuracy.py` to all 30 outer training/validation index sets.
+ - `step10e_access_common_SNPs.py`: Generates list of main effects.
 
 ## Directory: step11_analyze_complete_dataset
 
