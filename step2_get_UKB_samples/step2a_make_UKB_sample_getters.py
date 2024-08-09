@@ -3,7 +3,9 @@ import pdb
 
 eid_filters_folder = "eid_filters"
 filtered_output_folder = "filtered_output"
-data_folder = "/project/UKB_moore/UKB_50978/genotype/penn_freeze_11132019"
+# data_folder = "/project/UKB_moore/UKB_50978/genotype/penn_freeze_11132019"
+# starting 12/20/2023
+data_folder = "/project/UKB_Genetic_Dataset/genotype/penn_freeze_11132019"
 chromosomes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"]
 chromosomes += ["14", "15", "16", "17", "18", "19", "20", "21", "22", "MT", "X", "XY", "Y"]
 if not os.path.exists(filtered_output_folder):
@@ -19,7 +21,7 @@ for i in chromosomes:
     filter_file_template += "#BSUB -o " + eid_filters_folder + "/get_UKB_samples_chr" + i + ".out\n" 
     filter_file_template += "#BSUB -e " + eid_filters_folder + "/get_UKB_samples_chr" + i + ".err\n\n" 
     filter_file_template += "module load python/3.8\n" 
-    filter_file_template += "module load plink/1.90Beta\n\n"
+    filter_file_template += "module load plink/1.90Beta6.18\n\n"
 
     # opens the data filtering shell script for the ith chromosome plink file
     filter_path = eid_filters_folder + "/get_UKB_samples_chr" + i + ".sh"
