@@ -5,7 +5,7 @@
 #BSUB -R "rusage[mem=20000MB]"
 #BSUB -M 20000MB
 
-module load plink/1.90Beta
+module load plink/1.90Beta6.18
 
 # removes a few control samples so the number of samples is divisible by 10.
 plink --memory 15000 --bfile UKB_samples_filtered_with_remainder --remove remainder_eids.tab --make-bed --out UKB_samples_filtered

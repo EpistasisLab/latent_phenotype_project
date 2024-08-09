@@ -1,7 +1,7 @@
 #!/bin/bash
-#BSUB -J step3d_run_king_subjobs
-#BSUB -o step3d_run_king_subjobs.out
-#BSUB -e step3d_run_king_subjobs.error
+#BSUB -J step4d_run_king_subjobs
+#BSUB -o step4d_run_king_subjobs.out
+#BSUB -e step4d_run_king_subjobs.error
 
 bsub < king_subjobs/get_kinships_1.sh
 bsub < king_subjobs/get_kinships_2.sh
