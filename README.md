@@ -96,8 +96,6 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
  - `step7d_get_imputed_values_and_trasformed_variables.sh`: Executes the above, recommended for job submission due to long runtime.
 
- - `step7e_get_PCs_effs.py`: Outputs logistic regression beta coefficients for genetic PCs vs AHF, used to correct the standard logistic regression GWAS against AHF. 
-
 ## Directory: step7_adjust_HF_for_covariates_NN
 
 - `step7a_create_AE_phenotypes.py`: DO NOT RUN DIRECTLY. Computes autoencoder test accuracy based on layer nodes, cross-validation folds, and dropout rate. Generates latent phenotypes.
@@ -108,6 +106,8 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
 - `step7b_create_best_phenotypes_normal_AE_0.3dop.sh`: Executes the above model training.
 
+- `step7b2_normalize_phenotypes.py`: normalizes the AE phenotypes. 
+
 - `step7c_impute_missing_values.py`: DO NOT RUN DIRECTLY. Uses MICE to impute missing environmental data, selecting features based on correlation "nn".
 
 - `step7c_impute_missing_values.sh`: Executes imputation for various "nn"; paper uses nn=0.05.
@@ -115,12 +115,6 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 - `step7d_get_imputed_values_and_transformed_variables.py`: Similar to above, fixes "nn" at 0.05 and outputs imputed factors.
 
 - `step7d_get_imputed_values_and_transformed_variables.sh`: Executes the above, recommended for job submission.
-
-- `step7e_compute_network_shapley_values.py`: Calculates Shapley values for each latent phenotype.
-
-- `step7e_compute_network_shapley_values.sh`: Applies the above to all latent phenotypes.
-
-- `step7f_analyze_shapley_values.py`: Produces dendrograms based on correlations of high-impact or high-correlation Shapley values.
 
 ## Directory: step7_adjust_HF_for_covariates_PCA
 
@@ -133,12 +127,6 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 - `step7c_impute_missing_values.py`: Applies MICE imputation to environmental factors, using a fixed "nn" of 0.05. Confirmed to outperform mean imputation.
 
 - `step7d_get_imputed_values_and_transformed_variables.py`: Similar to `step7c`, but with "nn" fixed at 0.05 and no missingness simulation. Outputs imputed factors.
-
-- `step7e_compute_network_shapley_values.py`: Calculates Shapley values for ICD10 codes and heart failure in PCA-based latent phenotypes.
-
-- `step7f_analyze_shapley_values.py`: Generates dendrograms based on Shapley value correlations.
-
-- `step7g_sub_phenotype_analysis.sh`: Executes `step0_compute_SV_p_values.py` for varying numbers of top-contributing ICD10 codes.
 
 ## Directory: step8_get_imputed_ukb_samples
 
