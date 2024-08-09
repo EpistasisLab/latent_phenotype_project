@@ -137,7 +137,7 @@ phenotypes = phenotypes[:, pheno]
 if chr == "Y":
     phenotypes = phenotypes[is_male]
 
-prefix = "genotype_metadata/genotype_metadata_chr"
+prefix = "../step9_regress_phenotypes_against_SNPs_PCA/genotype_metadata/genotype_metadata_chr"
 cols = ["SNP", "C(HOM A1)", "C(HET)", "C(HOM A2)", "C(MISSING)"]
 all_missingness = pd.read_csv(prefix + chr + ".frqx", delimiter = "\t", usecols = ["SNP", "C(MISSING)"])
 all_afs = pd.read_csv(prefix + chr + ".frq", delim_whitespace = True, usecols = ["SNP", "MAF"])
@@ -294,4 +294,4 @@ o_df = pd.DataFrame(out)
 # if chromosome is X, then null2 is male and null2_alt is female. Otherwise, it's all samples. 
 o_df.columns = ["rsID", "p_main", "p_null1", "p_null2", "p_null2_alt", "p_null2_beta", "p_null2_alt_beta", "N"]
 o_df["rsID"] = new_rsIDs
-o_df.to_csv("QTL_output/QTL_effects_chr" + chr + "_P" + str(pheno) + ".txt", sep = "\t", header = True, index = False)
+o_df[["rsID", "p_main", "p_null2"]].to_csv("QTL_output/QTL_effects_chr" + chr + "_P" + str(pheno) + ".txt", sep = "\t", header = True, index = False)

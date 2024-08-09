@@ -83,8 +83,8 @@ new_fam = new_fam_main[sorted_indices]
 # maybe start with these: ['pack-years', 'annual-consumption', '874-average',  '894-average', '914-average', '22001-0.0']
 # env_name = 'pack-years'
 # env_name = 'annual-consumption'
-# env_name = ['874-average', '894-average', '914-average']
-env_name = '22001-0.0'
+env_name = ['874-average', '894-average', '914-average']
+# env_name = '22001-0.0'
 path = "../step7_adjust_HF_for_covariates_PCA/env_factors_for_step9.txt"
 gender_path = "../step7_adjust_HF_for_covariates_PCA/X.txt"
 gender_data = pd.read_csv(gender_path, delimiter = "\t", usecols = ["eid", "22001-0.0"], dtype = int)
@@ -293,4 +293,4 @@ o_df = pd.DataFrame(out)
 # if chromosome is X, then null2 is male and null2_alt is female. Otherwise, it's all samples. 
 o_df.columns = ["rsID", "p_main", "p_null1", "p_null2", "p_null2_alt", "p_null2_beta", "p_null2_alt_beta", "N"]
 o_df["rsID"] = new_rsIDs
-o_df.to_csv("QTL_output/QTL_effects_chr" + chr + "_P" + str(pheno) + ".txt", sep = "\t", header = True, index = False)
+o_df[["rsID", "p_main", "p_null2"]].to_csv("QTL_output/QTL_effects_chr" + chr + "_P" + str(pheno) + ".txt", sep = "\t", header = True, index = False)

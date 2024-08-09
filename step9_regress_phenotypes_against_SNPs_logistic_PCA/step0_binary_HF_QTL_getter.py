@@ -95,7 +95,7 @@ if chr == "Y":
     phenotypes = phenotypes[is_male]
     LR_offset_all = LR_offset_all[is_male]
 
-prefix = "genotype_metadata/genotype_metadata_chr"
+prefix = "../step9_regress_phenotypes_against_SNPs_PCA/genotype_metadata/genotype_metadata_chr"
 cols = ["SNP", "C(HOM A1)", "C(HET)", "C(HOM A2)", "C(MISSING)"]
 all_missingness = pd.read_csv(prefix + chr + ".frqx", delimiter = "\t", usecols = ["SNP", "C(MISSING)"])
 all_afs = pd.read_csv(prefix + chr + ".frq", delim_whitespace = True, usecols = ["SNP", "MAF"])
