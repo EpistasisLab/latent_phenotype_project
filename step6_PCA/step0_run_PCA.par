@@ -4,6 +4,7 @@ snpname:  UKB_samples_unrelated_pruned.bim
 indivname:  UKB_samples_unrelated_pruned.ind
 evecoutname:  UKB_samples_unrelated_pruned.evec
 evaloutname:  UKB_samples_unrelated_pruned.eval
+snpweightoutname:  UKB_samples_unrelated_pruned.loadings
 outlieroutname:  UKB_samples_unrelated_pruned.outlier
 altnormstyle: NO
 poplistname: UKB_samples_unrelated_pruned.txt
