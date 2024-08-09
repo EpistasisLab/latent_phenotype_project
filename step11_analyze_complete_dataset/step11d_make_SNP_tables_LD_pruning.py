@@ -151,15 +151,11 @@ counts = pd.DataFrame([categories, novel_SNP_counts, known_SNP_counts]).T
 counts = counts.sort_values(0, ascending = False)
 counts.columns = ["effect type", "novel SNPs", "known SNPs"]
 
-counts_logistic_PCA = counts[["novel SNPs", "known SNPs"]].to_numpy()[0:4].reshape(-1)
-counts_PCA = counts[["novel SNPs", "known SNPs"]].to_numpy()[4:8].reshape(-1)
-counts_NN = counts[["novel SNPs", "known SNPs"]].to_numpy()[8:12].reshape(-1)
+counts_logistic_PCA = counts[["novel SNPs", "known SNPs"]].to_numpy()[0:1].reshape(-1)
+counts_PCA = counts[["novel SNPs", "known SNPs"]].to_numpy()[1:2].reshape(-1)
+counts_NN = counts[["novel SNPs", "known SNPs"]].to_numpy()[2:3].reshape(-1)
 counts2 = pd.DataFrame([counts_PCA, counts_logistic_PCA, counts_NN])
-counts2[8] = ["PCA", "logistic PCA", "autoencoder"]
-counts2 = counts2[[8, 0, 1, 2, 3, 4, 5, 6, 7]]
-cols = ["latent phenotype model", "Main_Novel_SNP", "Main_Known_SNP"]
-cols += ["GxSmoking_Novel_SNP", "GxSmoking_Known_SNP"]
-cols += ["GxGender_Novel_SNP", "GxGender_Known_SNP"]
-cols += ["GxAlcohol_Novel_SNP", "GxAlcohol_Known_SNP"]
-counts2.columns = cols
+counts2[2] = ["PCA", "logistic PCA", "autoencoder"]
+counts2 = counts2[[2, 0, 1]]
+counts2.columns = ["latent phenotype model", "Main_Novel_SNP", "Main_Known_SNP"]
 counts2.to_csv("table1a.txt", sep = "\t", header = True, index = False)

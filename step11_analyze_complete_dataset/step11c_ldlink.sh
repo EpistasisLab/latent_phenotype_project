@@ -1,6 +1,6 @@
 #!/bin/bash
 
-expected_line="QueryGWASTraitRSNumberPosition(GRCh37)AllelesR2D'RiskAlleleEffectSize(95%CI)BetaorORP-value"
+expected_line="QueryGWASTraitPMIDRSNumberPosition(GRCh37)AllelesR2D'RiskAlleleEffectSize(95%CI)BetaorORP-value"
 expected_error_message1="NoentriesintheGWASCatalogareidentifiedusingtheLDtraitsearchcriteria."
 expected_error_message2="InputSNPlistdoesnotcontainanyvalidRSnumbersorcoordinates."
 expected_error_message3="InputSNPlistdoesnotcontainanyvalidRSnumbersorcoordinates.ThefollowingRSnumber(s)orcoordinate(s)inputshavewarnings:rs35826789"
@@ -73,10 +73,10 @@ done
 #fi
 #echo "$zz3"
 
-if [ "$first_line" == "$expected_line" ]; then
-  zz3=1
-else
-  zz3=0
-fi
-echo "$zz3"
+#if [ "$first_line" == "$expected_line" ]; then
+#  zz3=1
+#else
+#  zz3=0
+#fi
+#echo "$zz3"
 
