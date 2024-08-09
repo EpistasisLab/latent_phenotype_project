@@ -88,13 +88,31 @@ if os.path.isfile("phenotype_info.txt") == False:
 else:
     fields = pd.read_csv("phenotype_info.txt", delimiter = "\t", header = 0,  dtype = str)
 
-is_white = np.isin(fields["21000-0.0"], ["1", "1001", "1002", "1003"])
+#------------------------------------------------------------------------------------------------------------------------------------
+# start of step 1 methodology change for reviewers
+#------------------------------------------------------------------------------------------------------------------------------------
+is_white_british = np.isin(fields["22006-0.0"], ["1"])
+non_WB_eids_for_step3 = fields.loc[is_white_british == False, ["eid", "eid"]]
+non_WB_eids_for_step3.to_csv("../step3_merge_chr_and_remove_quitters/non_white_british_eids.tab", sep = "\t", header = False, index = False)
 self_declared_illness_cols = fields.columns[np.array(["20002" in col for col in fields.columns])]
 has_HCM1 = np.any(fields[self_declared_illness_cols] == "1588" , axis = 1)
 has_HCM2 = np.any(np.isin(fields, ["I421", "I422"]), axis = 1)
 has_no_HCM = np.logical_or(has_HCM1, has_HCM2) == False
-fields = fields.loc[np.logical_and(is_white, has_no_HCM), :]
+fields = fields.loc[np.logical_and(is_white_british, has_no_HCM), :]
 fields[["eid", "eid"]].to_csv("../step2_get_UKB_samples/eids.tab", sep = "\t", header = False, index = False)
+
+#is_white = np.isin(fields["21000-0.0"], ["1", "1001", "1002", "1003"])
+#self_declared_illness_cols = fields.columns[np.array(["20002" in col for col in fields.columns])]
+#has_HCM1 = np.any(fields[self_declared_illness_cols] == "1588" , axis = 1)
+#has_HCM2 = np.any(np.isin(fields, ["I421", "I422"]), axis = 1)
+#has_no_HCM = np.logical_or(has_HCM1, has_HCM2) == False
+#fields = fields.loc[np.logical_and(is_white, has_no_HCM), :]
+#fields[["eid", "eid"]].to_csv("../step2_get_UKB_samples/eids.tab", sep = "\t", header = False, index = False)
+
+#------------------------------------------------------------------------------------------------------------------------------------
+# end of step 1 methodology change for reviewers
+#------------------------------------------------------------------------------------------------------------------------------------
+
 
 #---------------------------------------------------------------------------------------------------------------------------------
 # "fields" has all non-white and hypertrophic CM individuals removed
