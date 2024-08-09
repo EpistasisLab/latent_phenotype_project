@@ -228,7 +228,7 @@ NOTE: Directories are ordered from top to bottom as the sequence in which they s
 
 ## Directory: step10_get_significant_SNPs_PCA
 
- - `step0_compute_GxE_p_values.py`: given an rsID, chromosome, latent phenotype, and environmental factor as input, computes a permutation test p value for the pure GxE effect. 
+ - `step0_compute_GxE_p_values.py`: given an rsID, chromosome, latent phenotype, and environmental factor as input, computes a permutation test p value for the pure GxE effect. This file produces figures dotplot.png (figure 4 left) and Mplot.png (figure 4 right)
 
  - `step0_filter_significant_SNPs_and_get_GxE_effects.py`: For each chromosome and environmental factor, for each latent phenotype, segments SNP hits into intervals, and selects independently nominally significant SNPs. For each independent SNP hit, prepares a bash file to run `step0_compute_GxE_p_values.py`
 
