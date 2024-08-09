@@ -242,24 +242,14 @@ def compute_EDGE_p_value(g, p, is_male_input, nonlinear = False):
         EDGE_p_val = chi2(4).sf(-2*np.sum(np.log(EDGE_p_val_set), axis = 0))
     return(EDGE_p_val)
 
+def perm_test(g0, p0, E0, is_male, M):
 
-def perm_test(g0, p0, E0, is_male, status, M):
-
-    E = COPY(E0).astype(float)
-    P = COPY(p0).astype(float)
+    G = COPY(g0).astype(float)
     EDGE2_p_vals = []
-    EDGE_p_vals = []
-    combined_p_vals = []
     for i in range(M):
-            np.random.shuffle(E)
-            np.random.shuffle(P)
-            EDGE2_p_vals.append(compute_EDGE2_p_value(g0, p0, E, is_male))
-            combined_p_vals.append(compute_EDGE2_p_value(g0, P, E, is_male))
-            if status != -1: 
-                np.random.shuffle(P)
-                EDGE_p_vals.append(compute_EDGE_p_value(g0, P, is_male))
-    return([EDGE2_p_vals,  EDGE_p_vals, combined_p_vals])
-
+            np.random.shuffle(G)
+            EDGE2_p_vals.append(compute_EDGE2_p_value(G, p0, E0, is_male))
+    return(EDGE2_p_vals)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--chr', nargs = 1, type = str, action = "store", dest = "chr")
@@ -318,7 +308,12 @@ best_hits_path = "hits_QTL" + name + "/QTL_hits_chr" + chr + ".txt"
 best_hits = pd.read_csv(best_hits_path, delimiter = "\t")
 row = np.logical_and(best_hits["rsID"] == rsID, best_hits["pheno_index"] == pheno_index)
 rsID_info = best_hits[row]
-p_EDGE2, p_EDGE, p_linear = rsID_info[['p_main', 'p_null1', 'p_null2']].to_numpy().reshape(-1)
+p_EDGE2, p_linear = rsID_info[['p_main', 'p_null2']].to_numpy().reshape(-1)
+if p_linear < 5E-8/15:
+    fname = "C_" + rsID + name + "_" + str(pheno_index) + "_" + chr + ".txt"
+    file = pd.DataFrame([-1])
+    file.to_csv("hits_GxE_p_vals/" + fname, sep = "\t", header = False, index = False)
+    exit()
 
 new_fam_path_prefix = "../step8_get_imputed_ukb_samples/filtered_output/UKB_samples_chr"
 main_path = new_fam_path_prefix + chromosomes[chr_index] + ".fam"
@@ -336,51 +331,88 @@ if np.nanmean(g0) > 1: g0 = 2 - g0
 p0 = QTL_phenotypes[:, pheno_index]
 E0 = env_factor
 
-# -----------------------------------------------------------------------------------------------------
-#
-# TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# Find out why EDGE p value was 0!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# python step0_compute_GxE_p_values.py --rsID rs532462830 --pheno_index 8 --chr X --name _smoking
-#
-# -----------------------------------------------------------------------------------------------------
-
-# pdb.set_trace()
-# compute_EDGE_p_value(g0, p0, is_male)
-# compute_EDGE2_p_value(g0, p0, E0, is_male)
-
 file = pd.read_csv("hits_QTL" + name + "/QTL_hits_chr" + chr + ".txt", delimiter = "\t")
 cond = np.logical_and(file["rsID"] == rsID, file["pheno_index"] == int(pheno_index))
 info = file.loc[cond, "p_main"].values[0]
-p_cutoff_EDGE2 = -np.log10(p_EDGE2)
-if p_EDGE != -1:
-    p_cutoff_EDGE = -np.log10(p_EDGE)
-else:
-    p_cutoff_EDGE = 1
+p_cutoff = -np.log10(p_EDGE2)
 
-status = p_EDGE
 reps = 20000
-p_EDGE2_dist, p_EDGE_dist, p_combined_dist = perm_test(g0, p0, E0, is_male, status, reps)
+p_vals  = perm_test(g0, p0, E0, is_male, reps)
 
-pvals_complete_set = []
-for p_vals, p_cutoff in zip([p_EDGE2_dist, p_EDGE_dist, p_combined_dist], [p_cutoff_EDGE2, p_cutoff_EDGE, p_cutoff_EDGE2]):
-    if len(p_vals) == reps:
-        W = -np.log10(p_vals)
-        def T(z): return((p_cutoff  - (A + B*(1/(g))*(np.exp((g)*z[0])-1)*np.exp(h*((z[0])**2)/2)))**2)
+W = -np.log10(p_vals)
+def T(z): return((p_cutoff  - (A + B*(1/(g))*(np.exp((g)*z[0])-1)*np.exp(h*((z[0])**2)/2)))**2)
 
-        sampled_p = []
-        for i in range(10000):
-            linargs = [0.1, 99.9, 1000]
-            W2 = np.random.choice(W, len(W))
-            A, B, g, h, success = estimate_tukey_params(W2, linargs)
-            sampled_p.append(norm.sf(minimize(T, 3).x)[0])
+sampled_p = []
+for i in range(10000):
+    linargs = [0.1, 99.9, 1000]
+    W2 = np.random.choice(W, len(W))
+    A, B, g, h, success = estimate_tukey_params(W2, linargs)
+    sampled_p.append(norm.sf(minimize(T, 3).x)[0])
 
-        p_val = np.percentile(sampled_p, 95)
-        pvals_complete_set.append(p_val)
-
-if len(pvals_complete_set) == 2: pvals_complete_set = [pvals_complete_set[0]] + [p_linear] + [pvals_complete_set[1]]
-fname = rsID + name + "_" + str(pheno_index) + "_" + chr + ".txt"
-file = pd.DataFrame([pvals_complete_set])
+p_val = np.percentile(sampled_p, 95)
+if p_val < 5E-8/75:
+    fname = "A_" + rsID + name + "_" + str(pheno_index) + "_" + chr + ".txt"
+else:
+    fname = "B_" + rsID + name + "_" + str(pheno_index) + "_" + chr + ".txt"
+file = pd.DataFrame([p_val])
 file.to_csv("hits_GxE_p_vals/" + fname, sep = "\t", header = False, index = False)
+
+# python step0_compute_GxE_p_values.py --rsID rs1229984 --pheno_index 0 --chr 4 --name _alcohol
+if chr == "4" and pheno_index == 0 and rsID == "rs1229984" and name == "_alcohol":
+    pdb.set_trace()
+
+    E_high, E_low = E0 > np.mean(E0), E0 < np.mean(E0)
+    g_0, g_1, g_2 = g0 == 0, g0 == 1, g0 == 2
+    y_00 = np.mean(p0[np.logical_and(E_low, g_0)])
+    y_01 = np.mean(p0[np.logical_and(E_low, g_1)])
+    y_02 = np.mean(p0[np.logical_and(E_low, g_2)])
+    y_10 = np.mean(p0[np.logical_and(E_high, g_0)])
+    y_11 = np.mean(p0[np.logical_and(E_high, g_1)])
+    y_12 = np.mean(p0[np.logical_and(E_high, g_2)])
+    y_0 = np.mean([y_00, y_01, y_02])
+    y_1 = np.mean([y_10, y_11, y_12])
+
+    plt.figure(figsize=(10, 6)) 
+    plt.plot([0, 1, 2], [y_00 - y_0, y_01 - y_0, y_02 - y_0], "co-", label = "below dataset average")
+    plt.plot([0, 1, 2], [y_10 - y_1, y_11 - y_1, y_12 - y_1], "ro-", label = "above dataset average")
+    plt.legend(title = "alcohol consumption", fontsize=16, title_fontsize = 20)
+    plt.xlabel('Genotype', fontsize=20)
+    plt.ylabel('Mean Centered Latent Phenotype', fontsize=20)
+    plt.title('rs1229984 effect | Environmental Exposure', fontsize=24, pad = 10)
+    plt.xticks(ticks=[0, 1, 2], labels=['CC', 'CT', 'TT'], fontsize=16)
+    plt.yticks(fontsize=16) 
+    plt.subplots_adjust(bottom=0.13, top = 0.90)
+    plt.savefig("dotplot.png")
+    plt.clf()   
+
+    path = "../step9_regress_phenotypes_against_SNPs_PCA/QTL_output_alcohol/QTL_effects_chr4_P0.txt"
+    path2 = "../step8_get_imputed_ukb_samples/filtered_output/UKB_samples_chr4.bim"
+    SNPs = pd.read_csv(path, delimiter = "\t")
+    pos = pd.read_csv(path2, delimiter = "\t", header = None, usecols = [1,3])
+    pos.columns = ["rsID", "pos"]
+    SNPs = SNPs.merge(pos, on = "rsID", how = "inner")
+
+    plt.figure(figsize=(10, 6)) 
+
+    x_inds = np.logical_and(SNPs["pos"] > 0.998E8, SNPs["pos"] < 1.006E8)
+    plt.plot(SNPs.loc[x_inds, "pos"].astype(int), -np.log10(SNPs.loc[x_inds, "p_main"]), "co", markersize=6)
+
+    idx = np.where(SNPs["rsID"] == "rs1229984")[0]
+    message = "rs1229984\np < 2.25E-11"
+    plt.text(SNPs.loc[idx, "pos"] + 10000, -np.log10(SNPs.loc[idx, "p_main"]) - 1.5, message, fontsize = 14)
+
+    plt.xlabel('chr4 position (bp)', fontsize=14)
+    plt.ylabel('-log10(nominal likelihood ratio GxE p-value)', fontsize=14)
+    plt.title('Manhattan Plot of SNP Associations', fontsize=16, pad=20)
+    plt.grid(axis='y', linestyle='--', alpha=0.7) 
+
+    ax = plt.gca()
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    plt.savefig("Mplot.png", bbox_inches='tight')
+    plt.clf()   
+
 
 '''
 z = np.random.normal(0, 1, int(100000000))

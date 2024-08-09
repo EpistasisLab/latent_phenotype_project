@@ -12,6 +12,7 @@ from scipy.stats import chi2
 from bed_reader import open_bed
 from matplotlib import pyplot as plt
 from sklearn.linear_model import LinearRegression
+from sklearn.decomposition import PCA
 import pdb
 import matplotlib as mpl
 from scipy.stats import norm
@@ -41,10 +42,33 @@ all_chromosomes = COPY(chromosomes)
 # number of hits in that phenotype to be artifactual.
 pheno_indices = list(range(15))
 
+#-------------------------------------------------------------------------------------------------------------------------------
+# Bug fix 1-26-24 start
+#-------------------------------------------------------------------------------------------------------------------------------
+
 # maybe start with these: ['pack-years', 'annual-consumption', '874-average']
-env_name = 'pack-years'
+# env_name = 'pack-years'
+# path = "../step7_adjust_HF_for_covariates_NN/env_factors_for_step9.txt"
+# env_data = pd.read_csv(path, delimiter = "\t", usecols = ["eid", "22001-0.0", env_name])
+
+env_dict = {'_gender':'22001-0.0', '_smoking':'pack-years', '_alcohol':'annual-consumption', '_exercise':['874-average', '894-average', '914-average']}
+env_name = env_dict[name]
 path = "../step7_adjust_HF_for_covariates_NN/env_factors_for_step9.txt"
-env_data = pd.read_csv(path, delimiter = "\t", usecols = ["eid", "22001-0.0", env_name])
+if env_name == ['874-average', '894-average', '914-average']:
+    env_data = pd.read_csv(path, delimiter = "\t", usecols = (["eid", "22001-0.0"] + env_name))
+    exercise = env_data[env_name].to_numpy()
+    pca = PCA(n_components = 1)
+    pca.fit(exercise)
+    exercise_score = pca.transform(exercise).reshape(-1)
+    env_data["exercise_score"] = exercise_score
+    env_data = env_data[["eid", "exercise_score", "22001-0.0"]]
+    env_name = "exercise_score"
+else:
+    env_data = pd.read_csv(path, delimiter = "\t", usecols = ["eid", "22001-0.0", env_name])
+
+#-------------------------------------------------------------------------------------------------------------------------------
+# Bug fix 1-26-24 end
+#-------------------------------------------------------------------------------------------------------------------------------
 
 QTL_pheno_path = "../step9_regress_phenotypes_against_SNPs_NN/QTL_phenotypes.txt"
 QTL_eids_path = "../step9_regress_phenotypes_against_SNPs_NN/QTL_phenotypes_eids.txt"
